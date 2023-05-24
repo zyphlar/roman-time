@@ -301,6 +301,14 @@
 
 
     <script language="javascript">
+        if(
+            window.location.protocol != 'https:'
+            && window.location.protocol != 'file:'
+            && window.location.host != 'localhost'
+        ) {
+          location.href = location.href.replace("http://", "https://");
+        }
+
         var map = L.map('map').on({
             click: loadMapCoords
         }).setView([0, 0], 10);
