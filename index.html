@@ -312,8 +312,8 @@
         const longForm = document.querySelector("#long");
 
         function loadMapCoords(e){
-            latForm.value = e.latlng.lat;
-            longForm.value = e.latlng.lng;
+            latForm.value = Math.round(e.latlng.lat*100)/100;
+            longForm.value = Math.round(e.latlng.lng*100)/100;
             render({coords: { latitude: latForm.value , longitude: longForm.value }});
         }
 
@@ -342,8 +342,8 @@
         function getLocation() {
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(gpsCoords){
-                latForm.value = gpsCoords.coords.latitude;
-                longForm.value = gpsCoords.coords.longitude;
+                latForm.value = Math.round(gpsCoords.coords.latitude*100)/100;
+                longForm.value = Math.round(gpsCoords.coords.longitude*100)/100;
                 render(gpsCoords);
             }, function(err){
                 console.error("Invalid geo:", err);
@@ -361,7 +361,7 @@
                 return false;
             }
 
-            let now = DateTime.fromFormat("1:15:00 PM +0000", 'h:mm:ss a ZZZ');
+            let now = DateTime.now(); //.fromFormat("1:15:00 PM +0000", 'h:mm:ss a ZZZ');
             let sunrise = DateTime.fromFormat(json.results.sunrise+" +0000", 'h:mm:ss a ZZZ');
 
             // handle sunrises that are tomorrow UTC
@@ -389,24 +389,16 @@
             let romanMinute = romanTime-romanHour;
 
             var romanMinuteEnglish = "";
-            if (romanMinute < 0.2) {
-                romanMinuteEnglish = "just after";
-            } else if (romanMinute < 0.4) {
-                romanMinuteEnglish = "quarter after";
-            } else if (romanMinute < 0.6) {
-                romanMinuteEnglish = "half after";
-            } else if (romanMinute < 0.8) {
-                romanMinuteEnglish = "three quarters after";
+            if (romanMinute < 0.33) {
+                romanMinuteEnglish = "just beginning";
+            } else if (romanMinute < 0.66) {
+                romanMinuteEnglish = "midway through";
             } else {
-                romanHour = romanHour+1;
-                romanMinuteEnglish = "almost";
+                romanMinuteEnglish = "nearly past";
             }
 
-            // 0 special case
-            if (romanHour == 0) {
-                romanHour = romanHour+1;
-                romanMinuteEnglish = "soon to be";
-            }
+            // from here on out we increment by 1 because the instant daylight begins it's the first hour
+            romanHour = romanHour+1;
 
             let romanNumeralHourArr = ["0", "I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
             let romanNumeralHour = romanNumeralHourArr[romanHour];
@@ -424,8 +416,8 @@
             if (msAfterSunrise > 0 && percentOfDay < 1) {
                 document.getElementById('clock').innerHTML = "It is "+romanMinuteEnglish+" <a href='https://en.wikipedia.org/wiki/Roman_timekeeping'>Hora "+romanHour+" ("+romanNumeralHour+")</a><br/>AKA "+(Math.round(percentOfDay*10000)/100)+"% through today's daylight.";
 
-                let zeroHrDeg = 86;
-                let twelveHrDeg = -82;
+                let zeroHrDeg = 82;
+                let twelveHrDeg = -91;
                 let degreeSweep = twelveHrDeg-zeroHrDeg;
                 let sundialDegree = percentOfDay*degreeSweep+zeroHrDeg;
 
