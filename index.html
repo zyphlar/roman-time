@@ -7,6 +7,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
     <style type="text/css">
         #map {
             width: 250px;
@@ -18,14 +19,16 @@
     </style>
 </head>
 <body>
+    <p>
+        Latitude: <input type="text" id="lat" /><br/>
+        Longitude: <input type="text" id="long" /><br/>
+        <button id="reload">Load</button>
+    </p>
     <div id="map"></div>
+    <p>
+        Click the map to change the time.
+    </p>
     <div id="clock"></div>
-
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
    width="300"
@@ -297,8 +300,23 @@
 
 
 
-    <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
     <script language="javascript">
+        var map = L.map('map').on({
+            click: loadMapCoords
+        }).setView([0, 0], 10);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+        const latForm = document.querySelector("#lat");
+        const longForm = document.querySelector("#long");
+
+        function loadMapCoords(e){
+            latForm.value = e.latlng.lat;
+            longForm.value = e.latlng.lng;
+            render({coords: { latitude: latForm.value , longitude: longForm.value }});
+        }
+
         function render(gpsCoords) {
             if (!gpsCoords) {
                 console.error("Invalid GPS:",gpsCoords);
@@ -306,11 +324,7 @@
             }
 
             // console.log(gpsCoords);
-            var map = L.map('map').setView([gpsCoords.coords.latitude, gpsCoords.coords.longitude], 10);
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }).addTo(map);
+            map.setView([gpsCoords.coords.latitude, gpsCoords.coords.longitude]);
 
             let url= 'https://api.sunrise-sunset.org/json?lat='+gpsCoords.coords.latitude+'&lng='+gpsCoords.coords.longitude;
 
@@ -327,7 +341,11 @@
 
         function getLocation() {
           if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(render, function(err){
+            navigator.geolocation.getCurrentPosition(function(gpsCoords){
+                latForm.value = gpsCoords.coords.latitude;
+                longForm.value = gpsCoords.coords.longitude;
+                render(gpsCoords);
+            }, function(err){
                 console.error("Invalid geo:", err);
             });
           } else {
@@ -343,7 +361,7 @@
                 return false;
             }
 
-            let now = DateTime.now();
+            let now = DateTime.fromFormat("1:15:00 PM +0000", 'h:mm:ss a ZZZ');
             let sunrise = DateTime.fromFormat(json.results.sunrise+" +0000", 'h:mm:ss a ZZZ');
 
             // handle sunrises that are tomorrow UTC
@@ -384,7 +402,13 @@
                 romanMinuteEnglish = "almost";
             }
 
-            let romanNumeralHourArr = ["0","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
+            // 0 special case
+            if (romanHour == 0) {
+                romanHour = romanHour+1;
+                romanMinuteEnglish = "soon to be";
+            }
+
+            let romanNumeralHourArr = ["0", "I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
             let romanNumeralHour = romanNumeralHourArr[romanHour];
 
             console.log(sunrise);
@@ -397,13 +421,13 @@
 
             console.log("It is", romanMinuteEnglish, "hora", romanHour, romanNumeralHour);
 
-            if (msAfterSunrise > 0) {
+            if (msAfterSunrise > 0 && percentOfDay < 1) {
                 document.getElementById('clock').innerHTML = "It is "+romanMinuteEnglish+" <a href='https://en.wikipedia.org/wiki/Roman_timekeeping'>Hora "+romanHour+" ("+romanNumeralHour+")</a><br/>AKA "+(Math.round(percentOfDay*10000)/100)+"% through today's daylight.";
 
-                let zeroHrDeg = 77;
-                let twelveHrDeg = -81.5;
+                let zeroHrDeg = 86;
+                let twelveHrDeg = -82;
                 let degreeSweep = twelveHrDeg-zeroHrDeg;
-                let sundialDegree = percentOfDay*degreeSweep*.975+zeroHrDeg; // .975 fudge factor
+                let sundialDegree = percentOfDay*degreeSweep+zeroHrDeg;
 
                 let sundial = document.getElementById("sundial");
                 sundial.style["display"] = "block";
@@ -417,6 +441,12 @@
         }
 
         getLocation();
+
+        const button = document.querySelector("#reload");
+        button.addEventListener("click", (event) => {
+            render({coords: { latitude: latForm.value , longitude: longForm.value }});
+        });
+
     </script>
 </body>
 </html>
