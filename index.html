@@ -13,9 +13,7 @@
             height: 180px;
         }
         #sundial {
-            background-image: url('roman-sundial.jpg');
-            width: 664px;
-            height: 1000px;
+            display: none;
         }
     </style>
 </head>
@@ -34,7 +32,7 @@
    height="300"
    viewBox="0 0 79.374999 79.375"
    version="1.1"
-   id="svg5"
+   id="sundial"
    xml:space="preserve"
    inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
    sodipodi:docname="sundial.svg"
@@ -400,19 +398,22 @@
             console.log("It is", romanMinuteEnglish, "hora", romanHour, romanNumeralHour);
 
             if (msAfterSunrise > 0) {
-                document.getElementById('clock').innerText = "It is "+romanMinuteEnglish+" Hora "+romanHour+" ("+romanNumeralHour+")";
+                document.getElementById('clock').innerHTML = "It is "+romanMinuteEnglish+" <a href='https://en.wikipedia.org/wiki/Roman_timekeeping'>Hora "+romanHour+" ("+romanNumeralHour+")</a><br/>AKA "+(Math.round(percentOfDay*10000)/100)+"% through today's daylight.";
+
+                let zeroHrDeg = 77;
+                let twelveHrDeg = -81.5;
+                let degreeSweep = twelveHrDeg-zeroHrDeg;
+                let sundialDegree = percentOfDay*degreeSweep*.975+zeroHrDeg; // .975 fudge factor
+
+                let sundial = document.getElementById("sundial");
+                sundial.style["display"] = "block";
+                let sunshadow = document.getElementById("sunshadow");
+                sunshadow.style["transform"] = "rotate("+sundialDegree+"deg)";
+                sunshadow.style["transform-origin"] = "top center";
             } else {
                 document.getElementById('clock').innerText = "The sun isn't in the sky, go check the moon.";
             }
 
-            let zeroHrDeg = 77;
-            let twelveHrDeg = -81.5;
-            let degreeSweep = twelveHrDeg-zeroHrDeg;
-            let sundialDegree = percentOfDay*degreeSweep*.975+zeroHrDeg; // .95 fudge factor
-
-            let sunshadow = document.getElementById("sunshadow");
-            sunshadow.style["transform"] = "rotate("+sundialDegree+"deg)";
-            sunshadow.style["transform-origin"] = "top center";
         }
 
         getLocation();
