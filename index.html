@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+    <style type="text/css">
+        #map {
+            width: 250px;
+            height: 180px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="clock"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
+    <script language="javascript">
+        function render(gpsCoords) {
+            if (!gpsCoords) {
+                console.error("Invalid GPS:",gpsCoords);
+                return false;
+            }
+
+            // console.log(gpsCoords);
+            var map = L.map('map').setView([gpsCoords.coords.latitude, gpsCoords.coords.longitude], 10);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+
+            let url= 'https://api.sunrise-sunset.org/json?lat='+gpsCoords.coords.latitude+'&lng='+gpsCoords.coords.longitude;
+
+            console.log("fetching",url);
+
+            fetch(url)
+            .then(res => res.json())
+            .then(out => {
+              console.log('Got: ', out);
+              parseSunset(out);
+            })
+            .catch(err => { throw err });
+        }
+
+        function getLocation() {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(render, function(err){
+                console.error("Invalid geo:", err);
+            });
+          } else {
+            console.error("Geolocation is not supported by this browser.");
+          }
+        }
+
+        function parseSunset(json) {
+            var DateTime = luxon.DateTime;
+
+            if (!json || !json.hasOwnProperty("results")) {
+                console.error("Invalid JSON:",json);
+                return false;
+            }
+
+            let sunrise = DateTime.fromFormat(json.results.sunrise+" +0000", 'h:mm:ss a ZZZ');
+            let sunset = DateTime.fromFormat(json.results.sunset+" +0000", 'h:mm:ss a ZZZ');
+
+            // handle sunsets in the morning UTC
+            if (sunset-sunrise < 0) {
+                // advance one day
+                sunset = sunset.plus({days: 1});
+            }
+
+            let now = DateTime.now();
+
+            let msAfterSunrise = now-sunrise;
+            let msDayDuration = sunset-sunrise;
+            let percentOfDay = (msAfterSunrise/msDayDuration)*100;
+            let romanTime = percentOfDay/8.333; // 1/12th is 8.33%
+
+            let romanHourToNormalHourRatio = msDayDuration/1000/60/12;
+
+            let romanHour = Math.floor(romanTime);
+            let romanMinute = romanTime-romanHour;
+
+            var romanMinuteEnglish = "";
+            if (romanMinute < 0.2) {
+                romanMinuteEnglish = "just after";
+            } else if (romanMinute < 0.4) {
+                romanMinuteEnglish = "quarter after";
+            } else if (romanMinute < 0.6) {
+                romanMinuteEnglish = "half after";
+            } else if (romanMinute < 0.8) {
+                romanMinuteEnglish = "three quarters after";
+            } else {
+                romanHour = romanHour+1;
+                romanMinuteEnglish = "almost";
+            }
+
+            let romanNumeralHourArr = ["0","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
+            let romanNumeralHour = romanNumeralHourArr[romanHour];
+
+            console.log(sunrise);
+            console.log("Sunrise", sunrise.hour, "Sunset", sunset.hour);
+            console.log("after sunrise ms", msAfterSunrise);
+            console.log("day duration ms", msDayDuration);
+            console.log("% thru the day", Math.round(percentOfDay*100)/100);            
+            console.log("Roman Time", Math.round(romanTime*100)/100);
+            console.log("There are",Math.round(romanHourToNormalHourRatio*100,2)/100,"modern minutes in each of today's Roman hours");
+
+            console.log("It is", romanMinuteEnglish, "hora", romanHour, romanNumeralHour);
+
+            if (msAfterSunrise > 0) {
+                document.getElementById('clock').innerText = "It is "+romanMinuteEnglish+" hora "+romanHour+" ("+romanNumeralHour+")";
+            } else {
+                document.getElementById('clock').innerText = "The sun isn't in the sky, go check the moon.";
+            }
+        }
+
+        getLocation();
+    </script>
+</body>
+</html>
