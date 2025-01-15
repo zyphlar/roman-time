@@ -1,452 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-     crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-     crossorigin=""></script>
-    <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
-    <style type="text/css">
-        #map {
-            width: 250px;
-            height: 180px;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekindling Romance Convention 2025</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(120deg, #ff9a9e, #fad0c4);
+            color: #333;
         }
-        #sundial {
-            display: none;
+
+        header {
+            background-color: #d9534f;
+            color: #fff;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            margin: 10px 0 0;
+            font-size: 1.2em;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        .info {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .info h2 {
+            color: #d9534f;
+            margin-top: 0;
+        }
+
+        .cta {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .cta a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #d9534f;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            transition: background-color 0.3s;
+        }
+
+        .cta a:hover {
+            background-color: #c9302c;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            background-color: #333;
+            color: #fff;
+        }
+
+        footer p {
+            margin: 0;
         }
     </style>
 </head>
 <body>
-    <p>
-        Latitude: <input type="text" id="lat" /><br/>
-        Longitude: <input type="text" id="long" /><br/>
-        <button id="reload">Load</button>
-    </p>
-    <div id="map"></div>
-    <p>
-        Click the map to change the time.
-    </p>
-    <div id="clock"></div>
+    <header>
+        <h1>Romanti.Me &mdash; A Convention about Rekindling Romance!</h1>
+        <p>January 16-20, 2025 | San Jose, CA</p>
+    </header>
 
-<svg
-   width="300"
-   height="300"
-   viewBox="0 0 79.374999 79.375"
-   version="1.1"
-   id="sundial"
-   xml:space="preserve"
-   inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
-   sodipodi:docname="sundial.svg"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
-     id="namedview7"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:document-units="px"
-     showgrid="false"
-     showguides="true"
-     inkscape:zoom="2.587745"
-     inkscape:cx="170.03221"
-     inkscape:cy="103.56507"
-     inkscape:window-width="1573"
-     inkscape:window-height="893"
-     inkscape:window-x="236"
-     inkscape:window-y="405"
-     inkscape:window-maximized="0"
-     inkscape:current-layer="layer1" /><defs
-     id="defs2"><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1093" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1101" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1107" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1113" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1113-0" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1217" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1225" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1233" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1241" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1113-0-4" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1289" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1297" /></defs><g
-     inkscape:label="Layer 1"
-     inkscape:groupmode="layer"
-     id="layer1"><rect
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.258589;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       id="rect1351"
-       width="50.451668"
-       height="48.12273"
-       x="15.069131"
-       y="0.67835337" /><rect
-       style="fill:#f2f2f2;fill-opacity:0.572881;stroke-width:0;stroke-linecap:round"
-       id="rect184"
-       width="79.375"
-       height="79.375"
-       x="-0.10038543"
-       y="0.077304482" /><path
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 65.520799,3.9355329 39.6875,0.86637383 65.520799,12.364677"
-       id="path1025"
-       sodipodi:nodetypes="ccc" /><path
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 65.520799,21.762579 39.6875,0.86637383 65.517806,33.994736"
-       id="path1027"
-       sodipodi:nodetypes="ccc" /><path
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 39.6875,0.86637383 62.676031,48.665793"
-       id="path1029"
-       sodipodi:nodetypes="cc" /><path
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 51.429107,48.512424 39.6875,0.86637383 40.294964,48.801083"
-       id="path1031"
-       sodipodi:nodetypes="ccc" /><path
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 30.113646,48.644715 39.6875,0.86637383 17.8954,48.644715"
-       id="path1033"
-       sodipodi:nodetypes="ccc" /><path
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 15.069131,29.941095 39.6875,0.86637383 15.072129,16.66682"
-       id="path1035"
-       sodipodi:nodetypes="ccc" /><path
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 39.6875,0.86637383 15.20442,6.5920798"
-       id="path1037" /><g
-       aria-label="XII"
-       transform="matrix(0.26458333,0,0,0.26458333,1.7060197,-3.9713926)"
-       id="text1091"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1093);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 269.2832,20.394141 v 0.265625 q -0.78125,0.09375 -1.53125,0.46875 -0.75,0.359375 -1.75,1.640625 -1.125,1.34375 -1.28125,1.59375 l -4.90625,6.6875 5.82813,8.71875 q 1.07812,1.625 1.96875,2.359375 0.89062,0.71875 1.54687,0.875 0.65625,0.15625 1.48438,0.15625 v 0.25 h -8.67188 v -0.25 q 1.10938,-0.01563 1.4375,-0.515625 0.34375,-0.5 0.34375,-0.9375 0,-0.640625 -0.64062,-1.625 l -4.67188,-7.046875 -4.70312,6.5 q -0.89063,1.203125 -0.89063,2.109375 0,0.453125 0.375,1 0.375,0.546875 1.60938,0.515625 v 0.25 h -6.89063 v -0.25 q 2.03125,0.04687 3.4375,-1.671875 0.95313,-1.140625 1.04688,-1.28125 l 5.60937,-7.734375 -5.70312,-8.609375 q -1.3125,-2.03125 -2.20313,-2.5625 -0.89062,-0.546875 -2.01562,-0.640625 v -0.265625 h 8.28125 v 0.265625 q -1.125,0.0625 -1.53125,0.5 -0.39063,0.421875 -0.39063,0.9375 0,0.828125 0.79688,2.078125 l 4.17187,6.28125 4.60938,-6.28125 q 0.98437,-1.390625 0.98437,-2.171875 0,-0.40625 -0.32812,-0.84375 -0.3125,-0.4375 -1.4375,-0.5 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3350" /><path
-         d="m 279.43945,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3352" /><path
-         d="m 289.0957,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3354" /></g><g
-       aria-label="XI"
-       transform="matrix(0.26458333,0,0,0.26458333,1.7060197,4.6171663)"
-       id="text1099"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1101);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 269.2832,20.394141 v 0.265625 q -0.78125,0.09375 -1.53125,0.46875 -0.75,0.359375 -1.75,1.640625 -1.125,1.34375 -1.28125,1.59375 l -4.90625,6.6875 5.82813,8.71875 q 1.07812,1.625 1.96875,2.359375 0.89062,0.71875 1.54687,0.875 0.65625,0.15625 1.48438,0.15625 v 0.25 h -8.67188 v -0.25 q 1.10938,-0.01563 1.4375,-0.515625 0.34375,-0.5 0.34375,-0.9375 0,-0.640625 -0.64062,-1.625 l -4.67188,-7.046875 -4.70312,6.5 q -0.89063,1.203125 -0.89063,2.109375 0,0.453125 0.375,1 0.375,0.546875 1.60938,0.515625 v 0.25 h -6.89063 v -0.25 q 2.03125,0.04687 3.4375,-1.671875 0.95313,-1.140625 1.04688,-1.28125 l 5.60937,-7.734375 -5.70312,-8.609375 q -1.3125,-2.03125 -2.20313,-2.5625 -0.89062,-0.546875 -2.01562,-0.640625 v -0.265625 h 8.28125 v 0.265625 q -1.125,0.0625 -1.53125,0.5 -0.39063,0.421875 -0.39063,0.9375 0,0.828125 0.79688,2.078125 l 4.17187,6.28125 4.60938,-6.28125 q 0.98437,-1.390625 0.98437,-2.171875 0,-0.40625 -0.32812,-0.84375 -0.3125,-0.4375 -1.4375,-0.5 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3345" /><path
-         d="m 279.43945,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3347" /></g><g
-       aria-label="X"
-       transform="matrix(0.26458333,0,0,0.26458333,1.7060197,13.716948)"
-       id="text1105"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1107);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 269.2832,20.394141 v 0.265625 q -0.78125,0.09375 -1.53125,0.46875 -0.75,0.359375 -1.75,1.640625 -1.125,1.34375 -1.28125,1.59375 l -4.90625,6.6875 5.82813,8.71875 q 1.07812,1.625 1.96875,2.359375 0.89062,0.71875 1.54687,0.875 0.65625,0.15625 1.48438,0.15625 v 0.25 h -8.67188 v -0.25 q 1.10938,-0.01563 1.4375,-0.515625 0.34375,-0.5 0.34375,-0.9375 0,-0.640625 -0.64062,-1.625 l -4.67188,-7.046875 -4.70312,6.5 q -0.89063,1.203125 -0.89063,2.109375 0,0.453125 0.375,1 0.375,0.546875 1.60938,0.515625 v 0.25 h -6.89063 v -0.25 q 2.03125,0.04687 3.4375,-1.671875 0.95313,-1.140625 1.04688,-1.28125 l 5.60937,-7.734375 -5.70312,-8.609375 q -1.3125,-2.03125 -2.20313,-2.5625 -0.89062,-0.546875 -2.01562,-0.640625 v -0.265625 h 8.28125 v 0.265625 q -1.125,0.0625 -1.53125,0.5 -0.39063,0.421875 -0.39063,0.9375 0,0.828125 0.79688,2.078125 l 4.17187,6.28125 4.60938,-6.28125 q 0.98437,-1.390625 0.98437,-2.171875 0,-0.40625 -0.32812,-0.84375 -0.3125,-0.4375 -1.4375,-0.5 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3342" /></g><g
-       aria-label="IX"
-       transform="matrix(0.26458333,0,0,0.26458333,1.4745093,26.850144)"
-       id="text1111"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1113);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 256.11133,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3337" /><path
-         d="m 278.93945,20.394141 v 0.265625 q -0.78125,0.09375 -1.53125,0.46875 -0.75,0.359375 -1.75,1.640625 -1.125,1.34375 -1.28125,1.59375 l -4.90625,6.6875 5.82813,8.71875 q 1.07812,1.625 1.96875,2.359375 0.89062,0.71875 1.54687,0.875 0.65625,0.15625 1.48438,0.15625 v 0.25 h -8.67188 v -0.25 q 1.10938,-0.01563 1.4375,-0.515625 0.34375,-0.5 0.34375,-0.9375 0,-0.640625 -0.64062,-1.625 l -4.67188,-7.046875 -4.70312,6.5 q -0.89063,1.203125 -0.89063,2.109375 0,0.453125 0.375,1 0.375,0.546875 1.60938,0.515625 v 0.25 h -6.89063 v -0.25 q 2.03125,0.04687 3.4375,-1.671875 0.95313,-1.140625 1.04688,-1.28125 l 5.60937,-7.734375 -5.70312,-8.609375 q -1.3125,-2.03125 -2.20313,-2.5625 -0.89062,-0.546875 -2.01562,-0.640625 v -0.265625 h 8.28125 v 0.265625 q -1.125,0.0625 -1.53125,0.5 -0.39063,0.421875 -0.39063,0.9375 0,0.828125 0.79688,2.078125 l 4.17187,6.28125 4.60938,-6.28125 q 0.98437,-1.390625 0.98437,-2.171875 0,-0.40625 -0.32812,-0.84375 -0.3125,-0.4375 -1.4375,-0.5 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3339" /></g><g
-       aria-label="IV"
-       transform="matrix(0.26458333,0,0,0.26458333,-53.197684,43.910225)"
-       id="text1111-9"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1113-0);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 256.11133,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3293" /><path
-         d="m 278.93945,20.394141 v 0.265625 q -0.875,0.109375 -1.45312,0.59375 -0.57813,0.484375 -0.98438,1.265625 -0.40625,0.765625 -0.92187,2.046875 -0.0781,0.07813 -0.15625,0.375 l -6.65625,19.078125 h -0.21875 l -7.84375,-20.640625 q 0,-0.0625 -0.0625,-0.1875 -0.45313,-1.328125 -1.20313,-1.9375 -0.73437,-0.609375 -1.84375,-0.59375 v -0.265625 h 7.5625 v 0.265625 q -0.95312,0.09375 -1.53125,0.375 -0.57812,0.28125 -0.57812,1.34375 0,0.28125 0.25,1.15625 0.0312,0.07813 0.0469,0.171875 0.0312,0.07813 0.0469,0.125 l 6.04687,16.15625 h 0.0625 l 5.1875,-15.046875 q 0.54688,-1.546875 0.54688,-2.328125 0,-1.234375 -0.53125,-1.5625 -0.51563,-0.328125 -1.54688,-0.390625 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3295" /></g><g
-       aria-label="I"
-       transform="matrix(0.26458333,0,0,0.26458333,-55.110245,-3.1778269)"
-       id="text1111-9-2"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1113-0-4);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 256.11133,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3310" /></g><g
-       aria-label="V"
-       transform="matrix(0.26458333,0,0,0.26458333,-40.797515,43.910225)"
-       id="text1215"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1217);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 269.2832,20.394141 v 0.265625 q -0.875,0.109375 -1.45312,0.59375 -0.57813,0.484375 -0.98438,1.265625 -0.40625,0.765625 -0.92187,2.046875 -0.0781,0.07813 -0.15625,0.375 l -6.65625,19.078125 h -0.21875 l -7.84375,-20.640625 q 0,-0.0625 -0.0625,-0.1875 -0.45313,-1.328125 -1.20313,-1.9375 -0.73437,-0.609375 -1.84375,-0.59375 v -0.265625 h 7.5625 v 0.265625 q -0.95312,0.09375 -1.53125,0.375 -0.57812,0.28125 -0.57812,1.34375 0,0.28125 0.25,1.15625 0.0312,0.07813 0.0469,0.171875 0.0312,0.07813 0.0469,0.125 l 6.04687,16.15625 h 0.0625 l 5.1875,-15.046875 q 0.54688,-1.546875 0.54688,-2.328125 0,-1.234375 -0.53125,-1.5625 -0.51563,-0.328125 -1.54688,-0.390625 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3313" /></g><g
-       aria-label="VI"
-       transform="matrix(0.26458333,0,0,0.26458333,-29.685008,43.910225)"
-       id="text1223"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1225);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 269.2832,20.394141 v 0.265625 q -0.875,0.109375 -1.45312,0.59375 -0.57813,0.484375 -0.98438,1.265625 -0.40625,0.765625 -0.92187,2.046875 -0.0781,0.07813 -0.15625,0.375 l -6.65625,19.078125 h -0.21875 l -7.84375,-20.640625 q 0,-0.0625 -0.0625,-0.1875 -0.45313,-1.328125 -1.20313,-1.9375 -0.73437,-0.609375 -1.84375,-0.59375 v -0.265625 h 7.5625 v 0.265625 q -0.95312,0.09375 -1.53125,0.375 -0.57812,0.28125 -0.57812,1.34375 0,0.28125 0.25,1.15625 0.0312,0.07813 0.0469,0.171875 0.0312,0.07813 0.0469,0.125 l 6.04687,16.15625 h 0.0625 l 5.1875,-15.046875 q 0.54688,-1.546875 0.54688,-2.328125 0,-1.234375 -0.53125,-1.5625 -0.51563,-0.328125 -1.54688,-0.390625 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3316" /><path
-         d="m 278.12695,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3318" /></g><g
-       aria-label="VII"
-       transform="matrix(0.26458333,0,0,0.26458333,-18.572502,43.910225)"
-       id="text1231"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1233);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 269.2832,20.394141 v 0.265625 q -0.875,0.109375 -1.45312,0.59375 -0.57813,0.484375 -0.98438,1.265625 -0.40625,0.765625 -0.92187,2.046875 -0.0781,0.07813 -0.15625,0.375 l -6.65625,19.078125 h -0.21875 l -7.84375,-20.640625 q 0,-0.0625 -0.0625,-0.1875 -0.45313,-1.328125 -1.20313,-1.9375 -0.73437,-0.609375 -1.84375,-0.59375 v -0.265625 h 7.5625 v 0.265625 q -0.95312,0.09375 -1.53125,0.375 -0.57812,0.28125 -0.57812,1.34375 0,0.28125 0.25,1.15625 0.0312,0.07813 0.0469,0.171875 0.0312,0.07813 0.0469,0.125 l 6.04687,16.15625 h 0.0625 l 5.1875,-15.046875 q 0.54688,-1.546875 0.54688,-2.328125 0,-1.234375 -0.53125,-1.5625 -0.51563,-0.328125 -1.54688,-0.390625 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3321" /><path
-         d="m 278.12695,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3323" /><path
-         d="m 287.7832,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3325" /></g><g
-       aria-label="VIII"
-       transform="matrix(0.26458333,0,0,0.26458333,-4.814163,43.910225)"
-       id="text1239"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1241);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 269.2832,20.394141 v 0.265625 q -0.875,0.109375 -1.45312,0.59375 -0.57813,0.484375 -0.98438,1.265625 -0.40625,0.765625 -0.92187,2.046875 -0.0781,0.07813 -0.15625,0.375 l -6.65625,19.078125 h -0.21875 l -7.84375,-20.640625 q 0,-0.0625 -0.0625,-0.1875 -0.45313,-1.328125 -1.20313,-1.9375 -0.73437,-0.609375 -1.84375,-0.59375 v -0.265625 h 7.5625 v 0.265625 q -0.95312,0.09375 -1.53125,0.375 -0.57812,0.28125 -0.57812,1.34375 0,0.28125 0.25,1.15625 0.0312,0.07813 0.0469,0.171875 0.0312,0.07813 0.0469,0.125 l 6.04687,16.15625 h 0.0625 l 5.1875,-15.046875 q 0.54688,-1.546875 0.54688,-2.328125 0,-1.234375 -0.53125,-1.5625 -0.51563,-0.328125 -1.54688,-0.390625 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3328" /><path
-         d="m 278.12695,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3330" /><path
-         d="m 287.7832,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3332" /><path
-         d="m 297.43945,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3334" /></g><g
-       aria-label="II"
-       transform="matrix(0.26458333,0,0,0.26458333,-57.665128,9.8250173)"
-       id="text1287"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1289);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 256.11133,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3305" /><path
-         d="m 265.76758,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3307" /></g><g
-       aria-label="III"
-       transform="matrix(0.26458333,0,0,0.26458333,-60.220011,24.202244)"
-       id="text1295"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1297);display:inline;fill:#f2f2f2;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 256.11133,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3298" /><path
-         d="m 265.76758,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3300" /><path
-         d="m 275.42383,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3302" /></g><path
-       id="sunshadow"
-       style="fill-opacity:0.572881;stroke-width:0;stroke-linecap:round"
-       d="m 38.364582,-2.1511219 h 2.645833 l -2.019334,38.6048839 -0.626499,0.587907 z"
-       sodipodi:nodetypes="ccccc" /></g></svg>
+    <main>
+        <section class="info">
+            <h2>About the Event</h2>
+            <p>Join us for an inspiring and transformative five-day convention focused on rekindling romance and fostering healthy, loving relationships.
+            <br/>Whether you’re looking to deepen your connection with your partner or gain valuable insights into the art of love, this event is for you!</p>
+        </section>
 
+        <section class="info">
+            <h2>Event Highlights</h2>
+            <ul>
+                <li>Workshops led by relationship experts</li>
+                <li>Interactive activities for couples</li>
+                <li>Inspirational keynote speakers</li>
+                <li>Opportunities to connect with like-minded individuals</li>
+            </ul>
+        </section>
 
+        <div class="cta">
+            <b>Registration is now full! If you have any questions, please email<br/><a href="mailto:events@romanti.me">events@romanti.me</a></b>
+        </div>
+    </main>
 
-
-    <script language="javascript">
-        if(
-            window.location.protocol != 'https:'
-            && window.location.protocol != 'file:'
-            && window.location.host != 'localhost'
-        ) {
-          location.href = location.href.replace("http://", "https://");
-        }
-
-        var map = L.map('map').on({
-            click: loadMapCoords
-        }).setView([0, 0], 10);
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
-        const latForm = document.querySelector("#lat");
-        const longForm = document.querySelector("#long");
-
-        function loadMapCoords(e){
-            latForm.value = Math.round(e.latlng.lat*100)/100;
-            longForm.value = Math.round(e.latlng.lng*100)/100;
-            render({coords: { latitude: latForm.value , longitude: longForm.value }});
-        }
-
-        function render(gpsCoords) {
-            if (!gpsCoords) {
-                console.error("Invalid GPS:",gpsCoords);
-                return false;
-            }
-
-            // console.log(gpsCoords);
-            map.setView([gpsCoords.coords.latitude, gpsCoords.coords.longitude]);
-
-            let url= 'https://api.sunrise-sunset.org/json?lat='+gpsCoords.coords.latitude+'&lng='+gpsCoords.coords.longitude;
-
-            console.log("fetching",url);
-
-            fetch(url)
-            .then(res => res.json())
-            .then(out => {
-              console.log('Got: ', out);
-              parseSunset(out);
-            })
-            .catch(err => { throw err });
-        }
-
-        function getLocation() {
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(gpsCoords){
-                latForm.value = Math.round(gpsCoords.coords.latitude*100)/100;
-                longForm.value = Math.round(gpsCoords.coords.longitude*100)/100;
-                render(gpsCoords);
-            }, function(err){
-                console.error("Invalid geo:", err);
-            });
-          } else {
-            console.error("Geolocation is not supported by this browser.");
-          }
-        }
-
-        function parseSunset(json) {
-            var DateTime = luxon.DateTime;
-
-            if (!json || !json.hasOwnProperty("results")) {
-                console.error("Invalid JSON:",json);
-                return false;
-            }
-
-            let now = DateTime.now(); //.fromFormat("1:15:00 PM +0000", 'h:mm:ss a ZZZ');
-            let sunrise = DateTime.fromFormat(json.results.sunrise+" +0000", 'h:mm:ss a ZZZ');
-
-            // handle sunrises that are tomorrow UTC
-            if (now-sunrise < 0) {
-                // subtract one day
-                sunrise = sunrise.minus({days: 1});
-            }
-
-            let sunset = DateTime.fromFormat(json.results.sunset+" +0000", 'h:mm:ss a ZZZ');
-
-            // handle sunsets in the morning UTC
-            if (sunset-sunrise < 0) {
-                // advance one day
-                sunset = sunset.plus({days: 1});
-            }
-
-            let msAfterSunrise = now-sunrise;
-            let msDayDuration = sunset-sunrise;
-            let percentOfDay = msAfterSunrise/msDayDuration;
-            let romanTime = percentOfDay*100/8.333; // 1/12th is 8.33%
-
-            let romanHourToNormalHourRatio = msDayDuration/1000/60/12;
-
-            let romanHour = Math.floor(romanTime);
-            let romanMinute = romanTime-romanHour;
-
-            var romanMinuteEnglish = "";
-            if (romanMinute < 0.33) {
-                romanMinuteEnglish = "just beginning";
-            } else if (romanMinute < 0.66) {
-                romanMinuteEnglish = "midway through";
-            } else {
-                romanMinuteEnglish = "nearly past";
-            }
-
-            // from here on out we increment by 1 because the instant daylight begins it's the first hour
-            romanHour = romanHour+1;
-
-            let romanNumeralHourArr = ["0", "I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
-            let romanNumeralHour = romanNumeralHourArr[romanHour];
-
-            console.log(sunrise);
-            console.log("Sunrise", sunrise, "Now", now, "Sunset", sunset);
-            console.log("after sunrise ms", msAfterSunrise);
-            console.log("day duration ms", msDayDuration);
-            console.log("% thru the day", Math.round(percentOfDay*10000)/100);            
-            console.log("Roman Time", Math.round(romanTime*100)/100);
-            console.log("There are",Math.round(romanHourToNormalHourRatio*100,2)/100,"modern minutes in each of today's Roman hours");
-
-            console.log("It is", romanMinuteEnglish, "hora", romanHour, romanNumeralHour);
-
-            if (msAfterSunrise > 0 && percentOfDay < 1) {
-                document.getElementById('clock').innerHTML = "It is "+romanMinuteEnglish+" <a href='https://en.wikipedia.org/wiki/Roman_timekeeping'>Hora "+romanHour+" ("+romanNumeralHour+")</a><br/>AKA "+(Math.round(percentOfDay*10000)/100)+"% through today's daylight.";
-
-                let zeroHrDeg = 82;
-                let twelveHrDeg = -91;
-                let degreeSweep = twelveHrDeg-zeroHrDeg;
-                let sundialDegree = percentOfDay*degreeSweep+zeroHrDeg;
-
-                let sundial = document.getElementById("sundial");
-                sundial.style["display"] = "block";
-                let sunshadow = document.getElementById("sunshadow");
-                sunshadow.style["transform"] = "rotate("+sundialDegree+"deg)";
-                sunshadow.style["transform-origin"] = "top center";
-            } else {
-                document.getElementById('clock').innerText = "The sun isn't in the sky, go check the moon.";
-            }
-
-        }
-
-        getLocation();
-
-        const button = document.querySelector("#reload");
-        button.addEventListener("click", (event) => {
-            render({coords: { latitude: latForm.value , longitude: longForm.value }});
-        });
-
-    </script>
+    <footer>
+        <p>&copy; 2025 Romanti.Me &mdash; All rights reserved.</p>
+    </footer>
 </body>
 </html>
