@@ -1,452 +1,707 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="What hour is it in ancient Rome? A live digital sundial for wherever you are.">
+    <meta name="theme-color" content="#f4ece0" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#14110d" media="(prefers-color-scheme: dark)">
+    <title>Roman Time</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M2 26a14 14 0 0 1 28 0z' fill='%23c2410c'/%3E%3Cpath d='M16 26 6 15' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-     crossorigin=""/>
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-     crossorigin=""></script>
-    <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
-    <style type="text/css">
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        :root {
+            --bg: #f4ece0;
+            --bg-glow: #fbd9a8;
+            --surface: #fffaf2;
+            --surface-2: #efe4d3;
+            --border: #e2d4bf;
+            --text: #2a2118;
+            --muted: #7a6a58;
+            --accent: #c2410c;
+            --accent-soft: #f6c99a;
+            --dial: #fffaf2;
+            --dial-line: #d8c7ae;
+            --seg-done: #f1d6b4;
+            --shadow-hand: rgba(42, 33, 24, .55);
+            --star: transparent;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #14110d;
+                --bg-glow: #4a2a12;
+                --surface: #1f1a14;
+                --surface-2: #2a231b;
+                --border: #3a3026;
+                --text: #f3e9da;
+                --muted: #a8977f;
+                --accent: #f59e0b;
+                --accent-soft: #7c4a14;
+                --dial: #1f1a14;
+                --dial-line: #4a3e30;
+                --seg-done: #4a3418;
+                --shadow-hand: rgba(0, 0, 0, .7);
+            }
+        }
+        body.night {
+            --bg: #0b1020;
+            --bg-glow: #1e2a5a;
+            --surface: #131a30;
+            --surface-2: #1b2442;
+            --border: #27325a;
+            --text: #e6eaf7;
+            --muted: #8f9bc2;
+            --accent: #a5b4fc;
+            --accent-soft: #3b4785;
+            --dial: #131a30;
+            --dial-line: #2f3b68;
+            --seg-done: #28336a;
+            --shadow-hand: rgba(205, 215, 255, .5);
+            --star: #c7d2fe;
+        }
+
+        * { box-sizing: border-box; }
+        html { -webkit-text-size-adjust: 100%; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            font-family: Inter, system-ui, -apple-system, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            background-image: radial-gradient(120% 60% at 50% 0%, var(--bg-glow) 0%, transparent 60%);
+            background-attachment: fixed;
+            transition: background-color .8s, color .8s;
+            -webkit-font-smoothing: antialiased;
+        }
+        .app {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: max(16px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .brand {
+            font-family: Cinzel, serif;
+            font-weight: 700;
+            letter-spacing: .14em;
+            font-size: 15px;
+        }
+        .loc-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            max-width: 60%;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font: inherit;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .loc-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .loc-btn svg { flex: none; color: var(--accent); }
+
+        .dial-wrap { position: relative; margin: 8px -8px 0; }
+        #dial { display: block; width: 100%; height: auto; overflow: visible; }
+        #dial .face { fill: var(--dial); stroke: var(--border); stroke-width: 1; transition: fill .8s; }
+        #dial .hour-line { stroke: var(--dial-line); stroke-width: 1; }
+        #dial .seg { fill: var(--surface-2); transition: fill .4s; }
+        #dial .seg.done { fill: var(--seg-done); }
+        #dial .seg.now { fill: var(--accent); }
+        #dial .numeral { font-family: Cinzel, serif; font-size: 15px; font-weight: 500; fill: var(--muted); text-anchor: middle; dominant-baseline: central; }
+        #dial .numeral.now { fill: var(--accent); font-weight: 700; }
+        #dial .horizon { stroke: var(--border); stroke-width: 1.5; }
+        #dial .gnomon { fill: var(--text); }
+        #dial .star { fill: var(--star); }
+        #hand {
+            transform-box: view-box;
+            transform-origin: 200px 214px;
+            transition: transform 1s cubic-bezier(.3, .7, .3, 1);
+        }
+        #hand.instant { transition: none; }
+        #hand .shadow { fill: var(--shadow-hand); filter: url(#soft); }
+        #hand .tip { fill: var(--accent); }
+
+        .readout { text-align: center; margin-top: 4px; }
+        .numeral-big {
+            font-family: Cinzel, serif;
+            font-weight: 700;
+            font-size: clamp(64px, 22vw, 104px);
+            line-height: 1;
+            letter-spacing: .04em;
+            color: var(--accent);
+        }
+        .latin {
+            font-family: Cinzel, serif;
+            font-size: 20px;
+            letter-spacing: .08em;
+            margin-top: 6px;
+        }
+        .phrase { color: var(--muted); margin-top: 6px; font-size: 15px; }
+
+        .progress {
+            margin: 20px 0 0;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+        .progress-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--muted); }
+        .progress-row b { color: var(--text); font-weight: 600; }
+        .bar { height: 6px; border-radius: 3px; background: var(--surface-2); margin-top: 10px; overflow: hidden; }
+        .bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 3px; transition: width 1s linear; }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .stat {
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+        .stat small { display: block; font-size: 12px; color: var(--muted); }
+        .stat strong { display: block; font-size: 18px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+        .scrub {
+            margin-top: 10px;
+            padding: 12px 16px;
+            border-radius: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+        .scrub-head { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--muted); }
+        .scrub-head b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+        .link-btn { background: none; border: 0; color: var(--accent); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 0; }
+        .link-btn[hidden] { display: none; }
+        input[type=range] { width: 100%; margin: 10px 0 2px; accent-color: var(--accent); }
+
+        h2 {
+            font-family: Cinzel, serif;
+            font-size: 14px;
+            letter-spacing: .12em;
+            color: var(--muted);
+            margin: 28px 4px 10px;
+            font-weight: 700;
+        }
+        .hours {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--surface);
+        }
+        .hours li {
+            display: grid;
+            grid-template-columns: 52px 1fr auto;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 16px;
+            border-top: 1px solid var(--border);
+            font-size: 14px;
+        }
+        .hours li:first-child { border-top: 0; }
+        .hours .n { font-family: Cinzel, serif; font-weight: 700; color: var(--muted); }
+        .hours .t { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 13px; }
+        .hours li.past { opacity: .5; }
+        .hours li.now { background: var(--accent-soft); }
+        .hours li.now .n { color: var(--accent); }
+        body.night .hours li.now .n { color: var(--text); }
+
+        .about { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 0 4px; }
+        .about a { color: var(--accent); }
+        footer { text-align: center; font-size: 12px; color: var(--muted); margin-top: 28px; }
+
+        /* location sheet */
+        dialog {
+            width: min(560px, 100%);
+            max-width: 100%;
+            max-height: 92dvh;
+            margin: auto auto 0;
+            padding: 20px 16px max(20px, env(safe-area-inset-bottom));
+            border: 0;
+            border-radius: 20px 20px 0 0;
+            background: var(--surface);
+            color: var(--text);
+        }
+        @media (min-width: 600px) {
+            dialog { margin: auto; border-radius: 20px; }
+        }
+        dialog::backdrop { background: rgba(0, 0, 0, .45); }
+        .sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .sheet-head h3 { margin: 0; font-family: Cinzel, serif; letter-spacing: .08em; font-size: 17px; }
+        .primary {
+            width: 100%;
+            padding: 13px;
+            border: 0;
+            border-radius: 12px;
+            background: var(--accent);
+            color: #fff;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        body.night .primary { color: #0b1020; }
         #map {
-            width: 250px;
-            height: 180px;
+            height: 260px;
+            border-radius: 14px;
+            margin: 12px 0;
+            border: 1px solid var(--border);
+            z-index: 0;
         }
-        #sundial {
-            display: none;
+        .coords { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; }
+        .coords label { font-size: 12px; color: var(--muted); }
+        .coords input {
+            display: block;
+            width: 100%;
+            margin-top: 4px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font: inherit;
+            font-size: 16px;
         }
+        .coords button {
+            align-self: end;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--text);
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .tz-note { font-size: 12px; color: var(--muted); text-align: center; margin: 10px 0 0; }
+        .hours small { font-size: 11px; color: var(--muted); margin-left: 6px; letter-spacing: .02em; }
+        .hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; min-height: 1em; }
     </style>
 </head>
 <body>
-    <p>
-        Latitude: <input type="text" id="lat" /><br/>
-        Longitude: <input type="text" id="long" /><br/>
-        <button id="reload">Load</button>
-    </p>
-    <div id="map"></div>
-    <p>
-        Click the map to change the time.
-    </p>
-    <div id="clock"></div>
+    <div class="app">
+        <header>
+            <div class="brand">ROMAN TIME</div>
+            <button class="loc-btn" id="openLoc" type="button" aria-label="Change location">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+                <span id="locLabel">Locating…</span>
+            </button>
+        </header>
 
-<svg
-   width="300"
-   height="300"
-   viewBox="0 0 79.374999 79.375"
-   version="1.1"
-   id="sundial"
-   xml:space="preserve"
-   inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
-   sodipodi:docname="sundial.svg"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
-     id="namedview7"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:document-units="px"
-     showgrid="false"
-     showguides="true"
-     inkscape:zoom="2.587745"
-     inkscape:cx="170.03221"
-     inkscape:cy="103.56507"
-     inkscape:window-width="1573"
-     inkscape:window-height="893"
-     inkscape:window-x="236"
-     inkscape:window-y="405"
-     inkscape:window-maximized="0"
-     inkscape:current-layer="layer1" /><defs
-     id="defs2"><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1093" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1101" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1107" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1113" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1113-0" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1217" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1225" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1233" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1241" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1113-0-4" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1289" /><rect
-       x="247.62636"
-       y="9.0098915"
-       width="86.766525"
-       height="48.955635"
-       id="rect1297" /></defs><g
-     inkscape:label="Layer 1"
-     inkscape:groupmode="layer"
-     id="layer1"><rect
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.258589;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       id="rect1351"
-       width="50.451668"
-       height="48.12273"
-       x="15.069131"
-       y="0.67835337" /><rect
-       style="fill:#f2f2f2;fill-opacity:0.572881;stroke-width:0;stroke-linecap:round"
-       id="rect184"
-       width="79.375"
-       height="79.375"
-       x="-0.10038543"
-       y="0.077304482" /><path
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 65.520799,3.9355329 39.6875,0.86637383 65.520799,12.364677"
-       id="path1025"
-       sodipodi:nodetypes="ccc" /><path
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 65.520799,21.762579 39.6875,0.86637383 65.517806,33.994736"
-       id="path1027"
-       sodipodi:nodetypes="ccc" /><path
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 39.6875,0.86637383 62.676031,48.665793"
-       id="path1029"
-       sodipodi:nodetypes="cc" /><path
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 51.429107,48.512424 39.6875,0.86637383 40.294964,48.801083"
-       id="path1031"
-       sodipodi:nodetypes="ccc" /><path
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 30.113646,48.644715 39.6875,0.86637383 17.8954,48.644715"
-       id="path1033"
-       sodipodi:nodetypes="ccc" /><path
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 15.069131,29.941095 39.6875,0.86637383 15.072129,16.66682"
-       id="path1035"
-       sodipodi:nodetypes="ccc" /><path
-       style="fill:none;fill-opacity:0.572881;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 39.6875,0.86637383 15.20442,6.5920798"
-       id="path1037" /><g
-       aria-label="XII"
-       transform="matrix(0.26458333,0,0,0.26458333,1.7060197,-3.9713926)"
-       id="text1091"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1093);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 269.2832,20.394141 v 0.265625 q -0.78125,0.09375 -1.53125,0.46875 -0.75,0.359375 -1.75,1.640625 -1.125,1.34375 -1.28125,1.59375 l -4.90625,6.6875 5.82813,8.71875 q 1.07812,1.625 1.96875,2.359375 0.89062,0.71875 1.54687,0.875 0.65625,0.15625 1.48438,0.15625 v 0.25 h -8.67188 v -0.25 q 1.10938,-0.01563 1.4375,-0.515625 0.34375,-0.5 0.34375,-0.9375 0,-0.640625 -0.64062,-1.625 l -4.67188,-7.046875 -4.70312,6.5 q -0.89063,1.203125 -0.89063,2.109375 0,0.453125 0.375,1 0.375,0.546875 1.60938,0.515625 v 0.25 h -6.89063 v -0.25 q 2.03125,0.04687 3.4375,-1.671875 0.95313,-1.140625 1.04688,-1.28125 l 5.60937,-7.734375 -5.70312,-8.609375 q -1.3125,-2.03125 -2.20313,-2.5625 -0.89062,-0.546875 -2.01562,-0.640625 v -0.265625 h 8.28125 v 0.265625 q -1.125,0.0625 -1.53125,0.5 -0.39063,0.421875 -0.39063,0.9375 0,0.828125 0.79688,2.078125 l 4.17187,6.28125 4.60938,-6.28125 q 0.98437,-1.390625 0.98437,-2.171875 0,-0.40625 -0.32812,-0.84375 -0.3125,-0.4375 -1.4375,-0.5 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3350" /><path
-         d="m 279.43945,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3352" /><path
-         d="m 289.0957,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3354" /></g><g
-       aria-label="XI"
-       transform="matrix(0.26458333,0,0,0.26458333,1.7060197,4.6171663)"
-       id="text1099"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1101);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 269.2832,20.394141 v 0.265625 q -0.78125,0.09375 -1.53125,0.46875 -0.75,0.359375 -1.75,1.640625 -1.125,1.34375 -1.28125,1.59375 l -4.90625,6.6875 5.82813,8.71875 q 1.07812,1.625 1.96875,2.359375 0.89062,0.71875 1.54687,0.875 0.65625,0.15625 1.48438,0.15625 v 0.25 h -8.67188 v -0.25 q 1.10938,-0.01563 1.4375,-0.515625 0.34375,-0.5 0.34375,-0.9375 0,-0.640625 -0.64062,-1.625 l -4.67188,-7.046875 -4.70312,6.5 q -0.89063,1.203125 -0.89063,2.109375 0,0.453125 0.375,1 0.375,0.546875 1.60938,0.515625 v 0.25 h -6.89063 v -0.25 q 2.03125,0.04687 3.4375,-1.671875 0.95313,-1.140625 1.04688,-1.28125 l 5.60937,-7.734375 -5.70312,-8.609375 q -1.3125,-2.03125 -2.20313,-2.5625 -0.89062,-0.546875 -2.01562,-0.640625 v -0.265625 h 8.28125 v 0.265625 q -1.125,0.0625 -1.53125,0.5 -0.39063,0.421875 -0.39063,0.9375 0,0.828125 0.79688,2.078125 l 4.17187,6.28125 4.60938,-6.28125 q 0.98437,-1.390625 0.98437,-2.171875 0,-0.40625 -0.32812,-0.84375 -0.3125,-0.4375 -1.4375,-0.5 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3345" /><path
-         d="m 279.43945,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3347" /></g><g
-       aria-label="X"
-       transform="matrix(0.26458333,0,0,0.26458333,1.7060197,13.716948)"
-       id="text1105"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1107);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 269.2832,20.394141 v 0.265625 q -0.78125,0.09375 -1.53125,0.46875 -0.75,0.359375 -1.75,1.640625 -1.125,1.34375 -1.28125,1.59375 l -4.90625,6.6875 5.82813,8.71875 q 1.07812,1.625 1.96875,2.359375 0.89062,0.71875 1.54687,0.875 0.65625,0.15625 1.48438,0.15625 v 0.25 h -8.67188 v -0.25 q 1.10938,-0.01563 1.4375,-0.515625 0.34375,-0.5 0.34375,-0.9375 0,-0.640625 -0.64062,-1.625 l -4.67188,-7.046875 -4.70312,6.5 q -0.89063,1.203125 -0.89063,2.109375 0,0.453125 0.375,1 0.375,0.546875 1.60938,0.515625 v 0.25 h -6.89063 v -0.25 q 2.03125,0.04687 3.4375,-1.671875 0.95313,-1.140625 1.04688,-1.28125 l 5.60937,-7.734375 -5.70312,-8.609375 q -1.3125,-2.03125 -2.20313,-2.5625 -0.89062,-0.546875 -2.01562,-0.640625 v -0.265625 h 8.28125 v 0.265625 q -1.125,0.0625 -1.53125,0.5 -0.39063,0.421875 -0.39063,0.9375 0,0.828125 0.79688,2.078125 l 4.17187,6.28125 4.60938,-6.28125 q 0.98437,-1.390625 0.98437,-2.171875 0,-0.40625 -0.32812,-0.84375 -0.3125,-0.4375 -1.4375,-0.5 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3342" /></g><g
-       aria-label="IX"
-       transform="matrix(0.26458333,0,0,0.26458333,1.4745093,26.850144)"
-       id="text1111"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1113);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 256.11133,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3337" /><path
-         d="m 278.93945,20.394141 v 0.265625 q -0.78125,0.09375 -1.53125,0.46875 -0.75,0.359375 -1.75,1.640625 -1.125,1.34375 -1.28125,1.59375 l -4.90625,6.6875 5.82813,8.71875 q 1.07812,1.625 1.96875,2.359375 0.89062,0.71875 1.54687,0.875 0.65625,0.15625 1.48438,0.15625 v 0.25 h -8.67188 v -0.25 q 1.10938,-0.01563 1.4375,-0.515625 0.34375,-0.5 0.34375,-0.9375 0,-0.640625 -0.64062,-1.625 l -4.67188,-7.046875 -4.70312,6.5 q -0.89063,1.203125 -0.89063,2.109375 0,0.453125 0.375,1 0.375,0.546875 1.60938,0.515625 v 0.25 h -6.89063 v -0.25 q 2.03125,0.04687 3.4375,-1.671875 0.95313,-1.140625 1.04688,-1.28125 l 5.60937,-7.734375 -5.70312,-8.609375 q -1.3125,-2.03125 -2.20313,-2.5625 -0.89062,-0.546875 -2.01562,-0.640625 v -0.265625 h 8.28125 v 0.265625 q -1.125,0.0625 -1.53125,0.5 -0.39063,0.421875 -0.39063,0.9375 0,0.828125 0.79688,2.078125 l 4.17187,6.28125 4.60938,-6.28125 q 0.98437,-1.390625 0.98437,-2.171875 0,-0.40625 -0.32812,-0.84375 -0.3125,-0.4375 -1.4375,-0.5 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3339" /></g><g
-       aria-label="IV"
-       transform="matrix(0.26458333,0,0,0.26458333,-53.197684,43.910225)"
-       id="text1111-9"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1113-0);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 256.11133,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3293" /><path
-         d="m 278.93945,20.394141 v 0.265625 q -0.875,0.109375 -1.45312,0.59375 -0.57813,0.484375 -0.98438,1.265625 -0.40625,0.765625 -0.92187,2.046875 -0.0781,0.07813 -0.15625,0.375 l -6.65625,19.078125 h -0.21875 l -7.84375,-20.640625 q 0,-0.0625 -0.0625,-0.1875 -0.45313,-1.328125 -1.20313,-1.9375 -0.73437,-0.609375 -1.84375,-0.59375 v -0.265625 h 7.5625 v 0.265625 q -0.95312,0.09375 -1.53125,0.375 -0.57812,0.28125 -0.57812,1.34375 0,0.28125 0.25,1.15625 0.0312,0.07813 0.0469,0.171875 0.0312,0.07813 0.0469,0.125 l 6.04687,16.15625 h 0.0625 l 5.1875,-15.046875 q 0.54688,-1.546875 0.54688,-2.328125 0,-1.234375 -0.53125,-1.5625 -0.51563,-0.328125 -1.54688,-0.390625 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3295" /></g><g
-       aria-label="I"
-       transform="matrix(0.26458333,0,0,0.26458333,-55.110245,-3.1778269)"
-       id="text1111-9-2"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1113-0-4);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 256.11133,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3310" /></g><g
-       aria-label="V"
-       transform="matrix(0.26458333,0,0,0.26458333,-40.797515,43.910225)"
-       id="text1215"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1217);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 269.2832,20.394141 v 0.265625 q -0.875,0.109375 -1.45312,0.59375 -0.57813,0.484375 -0.98438,1.265625 -0.40625,0.765625 -0.92187,2.046875 -0.0781,0.07813 -0.15625,0.375 l -6.65625,19.078125 h -0.21875 l -7.84375,-20.640625 q 0,-0.0625 -0.0625,-0.1875 -0.45313,-1.328125 -1.20313,-1.9375 -0.73437,-0.609375 -1.84375,-0.59375 v -0.265625 h 7.5625 v 0.265625 q -0.95312,0.09375 -1.53125,0.375 -0.57812,0.28125 -0.57812,1.34375 0,0.28125 0.25,1.15625 0.0312,0.07813 0.0469,0.171875 0.0312,0.07813 0.0469,0.125 l 6.04687,16.15625 h 0.0625 l 5.1875,-15.046875 q 0.54688,-1.546875 0.54688,-2.328125 0,-1.234375 -0.53125,-1.5625 -0.51563,-0.328125 -1.54688,-0.390625 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3313" /></g><g
-       aria-label="VI"
-       transform="matrix(0.26458333,0,0,0.26458333,-29.685008,43.910225)"
-       id="text1223"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1225);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 269.2832,20.394141 v 0.265625 q -0.875,0.109375 -1.45312,0.59375 -0.57813,0.484375 -0.98438,1.265625 -0.40625,0.765625 -0.92187,2.046875 -0.0781,0.07813 -0.15625,0.375 l -6.65625,19.078125 h -0.21875 l -7.84375,-20.640625 q 0,-0.0625 -0.0625,-0.1875 -0.45313,-1.328125 -1.20313,-1.9375 -0.73437,-0.609375 -1.84375,-0.59375 v -0.265625 h 7.5625 v 0.265625 q -0.95312,0.09375 -1.53125,0.375 -0.57812,0.28125 -0.57812,1.34375 0,0.28125 0.25,1.15625 0.0312,0.07813 0.0469,0.171875 0.0312,0.07813 0.0469,0.125 l 6.04687,16.15625 h 0.0625 l 5.1875,-15.046875 q 0.54688,-1.546875 0.54688,-2.328125 0,-1.234375 -0.53125,-1.5625 -0.51563,-0.328125 -1.54688,-0.390625 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3316" /><path
-         d="m 278.12695,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3318" /></g><g
-       aria-label="VII"
-       transform="matrix(0.26458333,0,0,0.26458333,-18.572502,43.910225)"
-       id="text1231"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1233);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 269.2832,20.394141 v 0.265625 q -0.875,0.109375 -1.45312,0.59375 -0.57813,0.484375 -0.98438,1.265625 -0.40625,0.765625 -0.92187,2.046875 -0.0781,0.07813 -0.15625,0.375 l -6.65625,19.078125 h -0.21875 l -7.84375,-20.640625 q 0,-0.0625 -0.0625,-0.1875 -0.45313,-1.328125 -1.20313,-1.9375 -0.73437,-0.609375 -1.84375,-0.59375 v -0.265625 h 7.5625 v 0.265625 q -0.95312,0.09375 -1.53125,0.375 -0.57812,0.28125 -0.57812,1.34375 0,0.28125 0.25,1.15625 0.0312,0.07813 0.0469,0.171875 0.0312,0.07813 0.0469,0.125 l 6.04687,16.15625 h 0.0625 l 5.1875,-15.046875 q 0.54688,-1.546875 0.54688,-2.328125 0,-1.234375 -0.53125,-1.5625 -0.51563,-0.328125 -1.54688,-0.390625 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3321" /><path
-         d="m 278.12695,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3323" /><path
-         d="m 287.7832,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3325" /></g><g
-       aria-label="VIII"
-       transform="matrix(0.26458333,0,0,0.26458333,-4.814163,43.910225)"
-       id="text1239"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1241);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 269.2832,20.394141 v 0.265625 q -0.875,0.109375 -1.45312,0.59375 -0.57813,0.484375 -0.98438,1.265625 -0.40625,0.765625 -0.92187,2.046875 -0.0781,0.07813 -0.15625,0.375 l -6.65625,19.078125 h -0.21875 l -7.84375,-20.640625 q 0,-0.0625 -0.0625,-0.1875 -0.45313,-1.328125 -1.20313,-1.9375 -0.73437,-0.609375 -1.84375,-0.59375 v -0.265625 h 7.5625 v 0.265625 q -0.95312,0.09375 -1.53125,0.375 -0.57812,0.28125 -0.57812,1.34375 0,0.28125 0.25,1.15625 0.0312,0.07813 0.0469,0.171875 0.0312,0.07813 0.0469,0.125 l 6.04687,16.15625 h 0.0625 l 5.1875,-15.046875 q 0.54688,-1.546875 0.54688,-2.328125 0,-1.234375 -0.53125,-1.5625 -0.51563,-0.328125 -1.54688,-0.390625 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3328" /><path
-         d="m 278.12695,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3330" /><path
-         d="m 287.7832,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3332" /><path
-         d="m 297.43945,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76563,1.9375 0.76562,0.59375 1.70312,0.59375 v 0.25 h -7.29687 v -0.25 q 1,0 1.71875,-0.578125 0.73437,-0.59375 0.73437,-1.953125 v -17.46875 q 0,-1.4375 -0.73437,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3334" /></g><g
-       aria-label="II"
-       transform="matrix(0.26458333,0,0,0.26458333,-57.665128,9.8250173)"
-       id="text1287"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1289);display:inline;fill:none;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 256.11133,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3305" /><path
-         d="m 265.76758,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3307" /></g><g
-       aria-label="III"
-       transform="matrix(0.26458333,0,0,0.26458333,-60.220011,24.202244)"
-       id="text1295"
-       style="font-size:32px;font-family:'Monogram kk sc';-inkscape-font-specification:'Monogram kk sc';white-space:pre;shape-inside:url(#rect1297);display:inline;fill:#f2f2f2;fill-opacity:0.572881;stroke:#000000;stroke-linecap:round"><path
-         d="m 256.11133,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3298" /><path
-         d="m 265.76758,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3300" /><path
-         d="m 275.42383,20.394141 v 0.265625 q -1.03125,0 -1.75,0.578125 -0.71875,0.578125 -0.71875,1.921875 v 17.46875 q 0,1.328125 0.76562,1.9375 0.76563,0.59375 1.70313,0.59375 v 0.25 h -7.29688 v -0.25 q 1,0 1.71875,-0.578125 0.73438,-0.59375 0.73438,-1.953125 v -17.46875 q 0,-1.4375 -0.73438,-1.96875 -0.71875,-0.53125 -1.71875,-0.53125 v -0.265625 z"
-         style="font-family:'Perpetua Titling MT';-inkscape-font-specification:'Perpetua Titling MT'"
-         id="path3302" /></g><path
-       id="sunshadow"
-       style="fill-opacity:0.572881;stroke-width:0;stroke-linecap:round"
-       d="m 38.364582,-2.1511219 h 2.645833 l -2.019334,38.6048839 -0.626499,0.587907 z"
-       sodipodi:nodetypes="ccccc" /></g></svg>
+        <div class="dial-wrap">
+            <svg id="dial" viewBox="0 0 400 236" role="img" aria-labelledby="dialTitle">
+                <title id="dialTitle">Sundial</title>
+                <defs>
+                    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="1.6"/>
+                    </filter>
+                </defs>
+                <g id="stars"></g>
+                <path class="face" d="M 14 214 A 186 186 0 0 1 386 214 Z"/>
+                <g id="segs"></g>
+                <g id="lines"></g>
+                <g id="numerals"></g>
+                <line class="horizon" x1="6" y1="214" x2="394" y2="214"/>
+                <g id="hand">
+                    <path class="shadow" d="M 200 210 L 46 214 L 200 218 Z"/>
+                    <circle class="tip" cx="40" cy="214" r="5"/>
+                </g>
+                <path class="gnomon" d="M 186 214 L 200 194 L 214 214 Z"/>
+            </svg>
+        </div>
 
+        <div class="readout" aria-live="polite">
+            <div class="numeral-big" id="bigNumeral">–</div>
+            <div class="latin" id="latin">&nbsp;</div>
+            <div class="phrase" id="phrase">&nbsp;</div>
+        </div>
 
+        <div class="progress">
+            <div class="progress-row"><span id="progLeft">&nbsp;</span><span id="progRight">&nbsp;</span></div>
+            <div class="bar"><i id="progBar"></i></div>
+        </div>
 
+        <div class="stats">
+            <div class="stat"><small id="s1l">Sunrise</small><strong id="s1">–</strong></div>
+            <div class="stat"><small id="s2l">Sunset</small><strong id="s2">–</strong></div>
+            <div class="stat"><small id="s3l">One Roman hour</small><strong id="s3">–</strong></div>
+            <div class="stat"><small id="s4l">Daylight</small><strong id="s4">–</strong></div>
+        </div>
+        <p class="tz-note" id="tzNote"></p>
 
-    <script language="javascript">
-        if(
-            window.location.protocol != 'https:'
-            && window.location.protocol != 'file:'
-            && window.location.host != 'localhost'
+        <div class="scrub">
+            <div class="scrub-head">
+                <span>Preview time · <b id="scrubLabel">Now</b></span>
+                <button class="link-btn" id="scrubReset" type="button" hidden>Back to now</button>
+            </div>
+            <input type="range" id="scrub" min="-720" max="720" step="5" value="0" aria-label="Preview another time">
+        </div>
+
+        <h2 id="listTitle">Horae Diei</h2>
+        <ol class="hours" id="hourList"></ol>
+
+        <h2>About</h2>
+        <p class="about">
+            Romans split the daylight, from sunrise to sunset, into twelve equal
+            <a href="https://en.wikipedia.org/wiki/Roman_timekeeping">horae</a>, and the night into twelve more,
+            grouped into four watches (<i>vigiliae</i>). So an hour stretched in summer and shrank in winter.
+            This dial works out sunrise and sunset for your location and shows the Roman hour.
+        </p>
+
+        <footer>romanti.me</footer>
+    </div>
+
+    <dialog id="locSheet">
+        <div class="sheet-head">
+            <h3>Location</h3>
+            <button class="link-btn" id="closeLoc" type="button">Done</button>
+        </div>
+        <button class="primary" id="useGps" type="button">Use my current location</button>
+        <div id="map"></div>
+        <form class="coords" id="coordForm">
+            <label>Latitude<input id="lat" inputmode="decimal" autocomplete="off" required></label>
+            <label>Longitude<input id="long" inputmode="decimal" autocomplete="off" required></label>
+            <button type="submit">Set</button>
+        </form>
+        <p class="hint" id="hint">Tap the map to pick a spot.</p>
+    </dialog>
+
+    <script>
+        if (
+            location.protocol != 'https:'
+            && location.protocol != 'file:'
+            && location.hostname != 'localhost'
         ) {
-          location.href = location.href.replace("http://", "https://");
+            location.href = location.href.replace("http://", "https://");
         }
 
-        var map = L.map('map').on({
-            click: loadMapCoords
-        }).setView([0, 0], 10);
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-            maxZoom: 19,
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, HERE, Garmin, USGS, NGA, EPA, USDA, NPS'
-        }).addTo(map);
-        const latForm = document.querySelector("#lat");
-        const longForm = document.querySelector("#long");
+        // ---- solar math (after SunCalc / NOAA) ----
+        const rad = Math.PI / 180, dayMs = 864e5, J1970 = 2440588, J2000 = 2451545, J0 = 0.0009;
+        const obliquity = rad * 23.4397;
+        const toDays = date => date.valueOf() / dayMs - 0.5 + J1970 - J2000;
+        const fromJulian = j => new Date((j + 0.5 - J1970) * dayMs);
 
-        function loadMapCoords(e){
-            latForm.value = Math.round(e.latlng.lat*100)/100;
-            longForm.value = Math.round(e.latlng.lng*100)/100;
-            render({coords: { latitude: latForm.value , longitude: longForm.value }});
+        function sunTimes(date, lat, lng) {
+            const lw = rad * -lng, phi = rad * lat;
+            const n = Math.round(toDays(date) - J0 - lw / (2 * Math.PI));
+            const ds = J0 + lw / (2 * Math.PI) + n;
+            const M = rad * (357.5291 + 0.98560028 * ds);
+            const C = rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M));
+            const L = M + C + rad * 102.9372 + Math.PI;
+            const dec = Math.asin(Math.sin(obliquity) * Math.sin(L));
+            const transit = j => J2000 + j + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+            const noon = transit(ds);
+            const cosH = (Math.sin(-0.833 * rad) - Math.sin(phi) * Math.sin(dec)) / (Math.cos(phi) * Math.cos(dec));
+            if (cosH > 1) return { polar: 'night' };
+            if (cosH < -1) return { polar: 'day' };
+            const set = transit(J0 + (Math.acos(cosH) + lw) / (2 * Math.PI) + n);
+            return { rise: fromJulian(noon - (set - noon)), set: fromJulian(set) };
         }
 
-        function render(gpsCoords) {
-            if (!gpsCoords) {
-                console.error("Invalid GPS:",gpsCoords);
-                return false;
+        // Find the daylight or night period containing time t.
+        function periodAt(t, lat, lng) {
+            const events = [];
+            for (let k = -2; k <= 2; k++) {
+                const s = sunTimes(new Date(t.getTime() + k * dayMs), lat, lng);
+                if (s.polar) continue;
+                events.push({ t: s.rise, type: 'rise' }, { t: s.set, type: 'set' });
             }
-
-            // console.log(gpsCoords);
-            map.setView([gpsCoords.coords.latitude, gpsCoords.coords.longitude]);
-
-            let url= 'https://api.sunrise-sunset.org/json?lat='+gpsCoords.coords.latitude+'&lng='+gpsCoords.coords.longitude;
-
-            console.log("fetching",url);
-
-            fetch(url)
-            .then(res => res.json())
-            .then(out => {
-              console.log('Got: ', out);
-              parseSunset(out);
-            })
-            .catch(err => { throw err });
+            events.sort((a, b) => a.t - b.t);
+            const uniq = events.filter((e, i) => i === 0 || Math.abs(e.t - events[i - 1].t) > 6e4);
+            for (let i = 0; i < uniq.length - 1; i++) {
+                const a = uniq[i], b = uniq[i + 1];
+                if (a.t <= t && t < b.t && a.type !== b.type) {
+                    return { isDay: a.type === 'rise', start: a.t, end: b.t };
+                }
+            }
+            const s = sunTimes(t, lat, lng);
+            return { polar: s.polar || 'night' };
         }
 
-        function getLocation() {
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(gpsCoords){
-                latForm.value = Math.round(gpsCoords.coords.latitude*100)/100;
-                longForm.value = Math.round(gpsCoords.coords.longitude*100)/100;
-                render(gpsCoords);
-            }, function(err){
-                console.error("Invalid geo:", err);
-            });
-          } else {
-            console.error("Geolocation is not supported by this browser.");
-          }
+        // ---- Roman bits ----
+        const NUMERALS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+        const ORDINALS = ["Prima", "Secunda", "Tertia", "Quarta", "Quinta", "Sexta", "Septima", "Octava", "Nona", "Decima", "Undecima", "Duodecima"];
+        const ENGLISH = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth"];
+        const VIGILIAE = ["Prima", "Secunda", "Tertia", "Quarta"];
+
+        // ---- dial drawing ----
+        const svgNS = "http://www.w3.org/2000/svg";
+        const CX = 200, CY = 214, R = 186;
+        const pt = (r, p) => {
+            const a = Math.PI * (1 - p);
+            return [CX + r * Math.cos(a), CY - r * Math.sin(a)];
+        };
+        const el = (tag, attrs, parent) => {
+            const e = document.createElementNS(svgNS, tag);
+            for (const k in attrs) e.setAttribute(k, attrs[k]);
+            parent.appendChild(e);
+            return e;
+        };
+        const segEls = [], numEls = [];
+        (function buildDial() {
+            const segs = document.getElementById('segs');
+            const lines = document.getElementById('lines');
+            const nums = document.getElementById('numerals');
+            const r1 = R - 6, r2 = R - 24;
+            for (let i = 0; i < 12; i++) {
+                const p0 = i / 12 + 0.003, p1 = (i + 1) / 12 - 0.003;
+                const [ax, ay] = pt(r1, p0), [bx, by] = pt(r1, p1);
+                const [cx, cy] = pt(r2, p1), [dx, dy] = pt(r2, p0);
+                segEls.push(el('path', {
+                    class: 'seg',
+                    d: `M${ax},${ay} A${r1},${r1} 0 0 1 ${bx},${by} L${cx},${cy} A${r2},${r2} 0 0 0 ${dx},${dy} Z`
+                }, segs));
+                const [nx, ny] = pt(R - 44, (i + 0.5) / 12);
+                const t = el('text', { class: 'numeral', x: nx, y: ny }, nums);
+                t.textContent = NUMERALS[i];
+                numEls.push(t);
+            }
+            for (let i = 1; i < 12; i++) {
+                const [x1, y1] = pt(28, i / 12), [x2, y2] = pt(R - 58, i / 12);
+                el('line', { class: 'hour-line', x1, y1, x2, y2 }, lines);
+            }
+            const stars = document.getElementById('stars');
+            let seed = 7;
+            const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+            for (let i = 0; i < 40; i++) {
+                el('circle', { class: 'star', cx: rnd() * 400, cy: rnd() * 200, r: rnd() * 1.2 + .3, opacity: rnd() * .6 + .3 }, stars);
+            }
+        })();
+
+        // ---- state ----
+        const ROME = { lat: 41.9028, lng: 12.4964, name: 'Roma', tz: 'Europe/Rome' };
+        let place = loadPlace() || ROME;
+        let offsetMin = 0;
+        let lastIsDay = null;
+
+        function loadPlace() {
+            try {
+                const p = JSON.parse(localStorage.getItem('romantime.place'));
+                if (p && isFinite(p.lat) && isFinite(p.lng)) return p.name === 'My location' ? p : { ...p, tz: approxZone(p.lng) };
+            } catch (e) { }
+            return null;
+        }
+        function savePlace(p) {
+            try { localStorage.setItem('romantime.place', JSON.stringify(p)); } catch (e) { }
+        }
+        // Without a timezone lookup service, approximate a picked spot's zone from its longitude.
+        function approxZone(lng) {
+            const h = Math.round(lng / 15);
+            return h === 0 ? 'Etc/GMT' : `Etc/GMT${h > 0 ? '-' : '+'}${Math.abs(h)}`;
+        }
+        function setPlace(lat, lng, name) {
+            lat = Math.max(-90, Math.min(90, +lat));
+            lng = ((+lng + 540) % 360) - 180;
+            place = { lat, lng, name: name || null, tz: name === 'My location' ? undefined : approxZone(lng) };
+            savePlace(place);
+            render();
         }
 
-        function parseSunset(json) {
-            var DateTime = luxon.DateTime;
+        // ---- formatting ----
+        const fmtTime = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', timeZone: place.tz });
+        function tzNote() {
+            if (!place.tz) return 'Clock times in your time zone';
+            if (place.tz === 'Europe/Rome') return 'Clock times in Rome';
+            const h = -parseInt(place.tz.slice(7) || '0', 10);
+            return `Clock times approximate local time (UTC${h >= 0 ? '+' : '−'}${Math.abs(h)})`;
+        }
+        const fmtDur = ms => {
+            const m = Math.round(ms / 6e4), h = Math.floor(m / 60);
+            return h ? `${h}h ${m % 60}m` : `${m} min`;
+        };
+        const fmtCoord = p => `${Math.abs(p.lat).toFixed(2)}°${p.lat >= 0 ? 'N' : 'S'}, ${Math.abs(p.lng).toFixed(2)}°${p.lng >= 0 ? 'E' : 'W'}`;
+        const $ = id => document.getElementById(id);
 
-            if (!json || !json.hasOwnProperty("results")) {
-                console.error("Invalid JSON:",json);
-                return false;
+        // ---- render ----
+        function render() {
+            const now = new Date(Date.now() + offsetMin * 6e4);
+            $('locLabel').textContent = place.name || fmtCoord(place);
+            $('tzNote').textContent = tzNote();
+
+            const per = periodAt(now, place.lat, place.lng);
+            if (per.polar) return renderPolar(per.polar);
+
+            const len = per.end - per.start;
+            const frac = (now - per.start) / len;
+            const hourLen = len / 12;
+            const idx = Math.min(11, Math.floor(frac * 12));
+            const within = frac * 12 - idx;
+
+            document.body.classList.toggle('night', !per.isDay);
+            const hand = $('hand');
+            if (lastIsDay !== per.isDay) {
+                hand.classList.add('instant');
+                requestAnimationFrame(() => requestAnimationFrame(() => hand.classList.remove('instant')));
+                lastIsDay = per.isDay;
             }
+            hand.style.transform = `rotate(${frac * 180}deg)`;
 
-            let now = DateTime.now(); //.fromFormat("1:15:00 PM +0000", 'h:mm:ss a ZZZ');
-            let sunrise = DateTime.fromFormat(json.results.sunrise+" +0000", 'h:mm:ss a ZZZ');
+            segEls.forEach((s, i) => s.setAttribute('class', 'seg' + (i < idx ? ' done' : i === idx ? ' now' : '')));
+            numEls.forEach((n, i) => n.setAttribute('class', 'numeral' + (i === idx ? ' now' : '')));
 
-            // handle sunrises that are tomorrow UTC
-            if (now-sunrise < 0) {
-                // subtract one day
-                sunrise = sunrise.minus({days: 1});
-            }
-
-            let sunset = DateTime.fromFormat(json.results.sunset+" +0000", 'h:mm:ss a ZZZ');
-
-            // handle sunsets in the morning UTC
-            if (sunset-sunrise < 0) {
-                // advance one day
-                sunset = sunset.plus({days: 1});
-            }
-
-            let msAfterSunrise = now-sunrise;
-            let msDayDuration = sunset-sunrise;
-            let percentOfDay = msAfterSunrise/msDayDuration;
-            let romanTime = percentOfDay*100/8.333; // 1/12th is 8.33%
-
-            let romanHourToNormalHourRatio = msDayDuration/1000/60/12;
-
-            let romanHour = Math.floor(romanTime);
-            let romanMinute = romanTime-romanHour;
-
-            var romanMinuteEnglish = "";
-            if (romanMinute < 0.33) {
-                romanMinuteEnglish = "just beginning";
-            } else if (romanMinute < 0.66) {
-                romanMinuteEnglish = "midway through";
+            $('bigNumeral').textContent = NUMERALS[idx];
+            const when = within < 1 / 3 ? 'Early in' : within < 2 / 3 ? 'Midway through' : 'Late in';
+            if (per.isDay) {
+                $('latin').textContent = `Hora ${ORDINALS[idx]}`;
+                $('phrase').textContent = `${when} the ${ENGLISH[idx]} hour of the day`;
             } else {
-                romanMinuteEnglish = "nearly past";
+                const v = Math.floor(idx / 3);
+                $('latin').textContent = `Hora ${ORDINALS[idx]} Noctis`;
+                $('phrase').textContent = `${when} the ${ENGLISH[idx]} hour of night · Vigilia ${VIGILIAE[v]}`;
             }
+            $('dialTitle').textContent = `Sundial showing ${$('latin').textContent}`;
 
-            // from here on out we increment by 1 because the instant daylight begins it's the first hour
-            romanHour = romanHour+1;
+            const nextAt = new Date(per.start.getTime() + (idx + 1) * hourLen);
+            $('progLeft').innerHTML = `<b>${Math.round(within * 100)}%</b> through hour ${NUMERALS[idx]}`;
+            $('progRight').textContent = idx < 11
+                ? `Hour ${NUMERALS[idx + 1]} at ${fmtTime(nextAt)}`
+                : `${per.isDay ? 'Sunset' : 'Sunrise'} at ${fmtTime(per.end)}`;
+            $('progBar').style.width = (within * 100).toFixed(1) + '%';
 
-            let romanNumeralHourArr = ["0", "I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
-            let romanNumeralHour = romanNumeralHourArr[romanHour];
-
-            console.log(sunrise);
-            console.log("Sunrise", sunrise, "Now", now, "Sunset", sunset);
-            console.log("after sunrise ms", msAfterSunrise);
-            console.log("day duration ms", msDayDuration);
-            console.log("% thru the day", Math.round(percentOfDay*10000)/100);            
-            console.log("Roman Time", Math.round(romanTime*100)/100);
-            console.log("There are",Math.round(romanHourToNormalHourRatio*100,2)/100,"modern minutes in each of today's Roman hours");
-
-            console.log("It is", romanMinuteEnglish, "hora", romanHour, romanNumeralHour);
-
-            if (msAfterSunrise > 0 && percentOfDay < 1) {
-                document.getElementById('clock').innerHTML = "It is "+romanMinuteEnglish+" <a href='https://en.wikipedia.org/wiki/Roman_timekeeping'>Hora "+romanHour+" ("+romanNumeralHour+")</a><br/>AKA "+(Math.round(percentOfDay*10000)/100)+"% through today's daylight.";
-
-                let zeroHrDeg = 82;
-                let twelveHrDeg = -91;
-                let degreeSweep = twelveHrDeg-zeroHrDeg;
-                let sundialDegree = percentOfDay*degreeSweep+zeroHrDeg;
-
-                let sundial = document.getElementById("sundial");
-                sundial.style["display"] = "block";
-                let sunshadow = document.getElementById("sunshadow");
-                sunshadow.style["transform"] = "rotate("+sundialDegree+"deg)";
-                sunshadow.style["transform-origin"] = "top center";
+            if (per.isDay) {
+                setStat(1, 'Sunrise', fmtTime(per.start));
+                setStat(2, 'Sunset', fmtTime(per.end));
+                setStat(3, 'One Roman hour', `${Math.round(hourLen / 6e4)} min`);
+                setStat(4, 'Daylight left', fmtDur(per.end - now));
             } else {
-                document.getElementById('clock').innerText = "The sun isn't in the sky, go check the moon.";
+                setStat(1, 'Sunset', fmtTime(per.start));
+                setStat(2, 'Sunrise', fmtTime(per.end));
+                setStat(3, 'One night hour', `${Math.round(hourLen / 6e4)} min`);
+                setStat(4, 'Until dawn', fmtDur(per.end - now));
             }
 
+            $('listTitle').textContent = per.isDay ? 'Horae Diei' : 'Horae Noctis';
+            const items = [];
+            for (let i = 0; i < 12; i++) {
+                const s = new Date(per.start.getTime() + i * hourLen);
+                const cls = i < idx ? 'past' : i === idx ? 'now' : '';
+                const label = `Hora ${ORDINALS[i]}` +
+                    (!per.isDay && i % 3 === 0 ? `<small>Vigilia ${NUMERALS[i / 3]}</small>` : '');
+                items.push(`<li class="${cls}"><span class="n">${NUMERALS[i]}</span><span>${label}</span><span class="t">${fmtTime(s)}</span></li>`);
+            }
+            const html = items.join('');
+            if ($('hourList').innerHTML !== html) $('hourList').innerHTML = html;
         }
 
-        getLocation();
+        function setStat(n, label, value) {
+            $('s' + n + 'l').textContent = label;
+            $('s' + n).textContent = value;
+        }
 
-        const button = document.querySelector("#reload");
-        button.addEventListener("click", (event) => {
-            render({coords: { latitude: latForm.value , longitude: longForm.value }});
+        function renderPolar(kind) {
+            const day = kind === 'day';
+            document.body.classList.toggle('night', !day);
+            $('hand').style.transform = 'rotate(90deg)';
+            segEls.forEach(s => s.setAttribute('class', 'seg'));
+            numEls.forEach(n => n.setAttribute('class', 'numeral'));
+            $('bigNumeral').textContent = day ? '☉' : '☾';
+            $('latin').textContent = day ? 'Sol Perpetuus' : 'Nox Perpetua';
+            $('phrase').textContent = day ? "The sun doesn't set here today" : "The sun doesn't rise here today";
+            $('progLeft').textContent = 'No Roman hours today';
+            $('progRight').textContent = '';
+            $('progBar').style.width = '0';
+            ['Sunrise', 'Sunset', 'One Roman hour', 'Daylight'].forEach((l, i) => setStat(i + 1, l, '–'));
+            $('hourList').innerHTML = '';
+        }
+
+        // ---- preview slider ----
+        $('scrub').addEventListener('input', e => {
+            offsetMin = +e.target.value;
+            const sign = offsetMin < 0 ? '−' : '+';
+            const a = Math.abs(offsetMin);
+            $('scrubLabel').textContent = offsetMin === 0 ? 'Now'
+                : `${sign}${Math.floor(a / 60)}h ${a % 60}m · ${fmtTime(new Date(Date.now() + offsetMin * 6e4))}`;
+            $('scrubReset').hidden = offsetMin === 0;
+            render();
+        });
+        $('scrubReset').addEventListener('click', () => {
+            $('scrub').value = 0;
+            $('scrub').dispatchEvent(new Event('input'));
         });
 
+        // ---- location sheet ----
+        const sheet = $('locSheet');
+        let map, marker;
+        function syncForm() {
+            $('lat').value = place.lat.toFixed(4);
+            $('long').value = place.lng.toFixed(4);
+            if (map) {
+                marker.setLatLng([place.lat, place.lng]);
+                map.setView([place.lat, place.lng]);
+            }
+        }
+        $('openLoc').addEventListener('click', () => {
+            sheet.showModal();
+            if (!map && window.L) {
+                map = L.map('map', { zoomControl: true }).setView([place.lat, place.lng], 5);
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 19,
+                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, HERE, Garmin, USGS, NGA, EPA, USDA, NPS'
+                }).addTo(map);
+                marker = L.circleMarker([place.lat, place.lng], { radius: 8, color: '#c2410c', weight: 3, fillOpacity: .5 }).addTo(map);
+                map.on('click', e => {
+                    setPlace(e.latlng.lat, e.latlng.lng);
+                    syncForm();
+                    $('hint').textContent = 'Location updated.';
+                });
+            }
+            syncForm();
+            if (map) setTimeout(() => map.invalidateSize(), 50);
+        });
+        $('closeLoc').addEventListener('click', () => sheet.close());
+        sheet.addEventListener('click', e => { if (e.target === sheet) sheet.close(); });
+        $('coordForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const lat = parseFloat($('lat').value), lng = parseFloat($('long').value);
+            if (!isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90) {
+                $('hint').textContent = 'Enter a latitude (−90 to 90) and longitude.';
+                return;
+            }
+            setPlace(lat, lng);
+            syncForm();
+            $('hint').textContent = 'Location updated.';
+        });
+
+        function locate(fromButton) {
+            if (!navigator.geolocation) {
+                if (fromButton) $('hint').textContent = "This browser can't share its location.";
+                return;
+            }
+            if (fromButton) $('hint').textContent = 'Finding you…';
+            navigator.geolocation.getCurrentPosition(pos => {
+                setPlace(pos.coords.latitude, pos.coords.longitude, 'My location');
+                syncForm();
+                if (fromButton) $('hint').textContent = 'Using your current location.';
+            }, err => {
+                if (fromButton) $('hint').textContent = 'Location unavailable: ' + err.message;
+            }, { maximumAge: 6e5, timeout: 15000 });
+        }
+        $('useGps').addEventListener('click', () => locate(true));
+
+        render();
+        if (!loadPlace() || place.name === 'My location') locate(false);
+        setInterval(render, 1000);
     </script>
 </body>
 </html>
