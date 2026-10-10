@@ -230,7 +230,7 @@
         }
         .scrub-head { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--muted); }
         .scrub-head b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
-        .link-btn { background: none; border: 0; color: var(--accent); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 0; }
+        .link-btn { background: none; border: 0; color: var(--accent); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; }
         .link-btn[hidden] { display: none; }
         input[type=range] { width: 100%; margin: 10px 0 2px; accent-color: var(--accent); }
 
@@ -350,6 +350,14 @@
             </button>
         </header>
 
+        <div class="scrub">
+            <div class="scrub-head">
+                <span>Preview time · <b id="scrubLabel">Now</b></span>
+                <button class="link-btn" id="scrubReset" type="button" hidden>Back to now</button>
+            </div>
+            <input type="range" id="scrub" min="-720" max="720" step="5" value="0" aria-label="Preview another time">
+        </div>
+
         <div class="dial-wrap">
             <svg id="sundial" viewBox="0 0 400 268" role="img" aria-labelledby="dialTitle">
                 <title id="dialTitle">Hemicyclium sundial</title>
@@ -445,14 +453,6 @@
             <div class="stat"><small id="s4l">Daylight</small><strong id="s4">–</strong></div>
         </div>
         <p class="tz-note" id="tzNote"></p>
-
-        <div class="scrub">
-            <div class="scrub-head">
-                <span>Preview time · <b id="scrubLabel">Now</b></span>
-                <button class="link-btn" id="scrubReset" type="button" hidden>Back to now</button>
-            </div>
-            <input type="range" id="scrub" min="-720" max="720" step="5" value="0" aria-label="Preview another time">
-        </div>
 
         <h2 id="listTitle">Horae Diei</h2>
         <ol class="hours" id="hourList"></ol>
