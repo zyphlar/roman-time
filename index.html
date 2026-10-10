@@ -269,7 +269,10 @@
         body.night .hours li.now .n { color: var(--text); }
 
         .about { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 0 4px; }
-        .about a { color: var(--accent); }
+        .about a, .sources a { color: var(--accent); }
+        .about + .about { margin-top: 12px; }
+        .sources { color: var(--muted); font-size: 13px; line-height: 1.55; margin: 0 4px; padding-left: 18px; }
+        .sources li + li { margin-top: 8px; }
         footer { text-align: center; font-size: 12px; color: var(--muted); margin-top: 28px; }
 
         /* location sheet */
@@ -350,39 +353,31 @@
         </header>
 
         <div class="dial-wrap">
-            <svg id="sundial" viewBox="0 0 400 240" role="img" aria-labelledby="dialTitle">
-                <title id="dialTitle">Spherical sundial</title>
+            <svg id="sundial" viewBox="0 0 400 268" role="img" aria-labelledby="dialTitle">
+                <title id="dialTitle">Hemicyclium sundial</title>
                 <defs>
                     <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
                         <feGaussianBlur stdDeviation="1.2"/>
                     </filter>
-                    <radialGradient id="bowlGrad" cx="200" cy="150" r="190" gradientUnits="userSpaceOnUse">
+                    <radialGradient id="bowlGrad" cx="200" cy="200" r="230" gradientUnits="userSpaceOnUse">
                         <stop offset="0" class="g-deep"/>
                         <stop offset="1" class="g-rim"/>
                     </radialGradient>
-                    <radialGradient id="globeShade" cx="200" cy="40" r="180" gradientUnits="userSpaceOnUse">
-                        <stop offset="0" stop-color="#fff" stop-opacity=".15"/>
-                        <stop offset="1" stop-color="#000" stop-opacity=".2"/>
-                    </radialGradient>
                 </defs>
-                <!-- pedestal -->
-                <path class="stone-dark" d="M 112 236 L 120 224 H 280 L 288 236 Z"/>
-                <path class="stone" d="M 136 224 L 150 208 H 250 L 264 224 Z"/>
-                <rect class="stone-dark" x="170" y="190" width="60" height="20" rx="4"/>
-                <!-- the lower quarter of a hollow globe, cut level at its centre and open to the equator -->
-                <path class="stone-top" d="M 34 30 A 166 166 0 0 0 366 30 Z"/>
-                <path fill="url(#globeShade)" d="M 34 30 A 166 166 0 0 0 366 30 Z"/>
-                <path class="bowl" fill="url(#bowlGrad)" d="M 50 30 A 150 150 0 0 0 350 30 Z"/>
-                <path class="stone-dark" d="M 32 27 H 368 V 31 H 32 Z"/>
+                <!-- Berosus' hemicyclium: "the semicircle, hollowed in a square, and inclined according to the climate" (Vitruvius IX.8.1) -->
+                <path class="stone-top" d="M 14 52 L 40 22 H 360 L 386 52 Z"/>
+                <rect class="stone" x="14" y="52" width="372" height="196"/>
+                <rect class="stone-dark" x="6" y="246" width="388" height="16" rx="2"/>
+                <path class="bowl" fill="url(#bowlGrad)" d="M 30 52 A 170 170 0 0 0 370 52 Z"/>
                 <g id="bands"></g>
                 <g id="dialLines"></g>
                 <path id="todayCurve" class="today"/>
                 <g id="numerals"></g>
                 <path id="shadow" class="shadow"/>
-                <circle id="tip" class="tip" r="3.5" cx="200" cy="30"/>
+                <circle id="tip" class="tip" r="3.5" cx="200" cy="52"/>
                 <!-- gnomon: its base sits where the shadow begins -->
-                <path class="bronze" d="M 197 30 L 203 30 L 201.5 52 L 198.5 52 Z"/>
-                <circle class="bronze-dark" cx="200" cy="52" r="2.5"/>
+                <path class="bronze" d="M 197 52 L 203 52 L 201.5 74 L 198.5 74 Z"/>
+                <circle class="bronze-dark" cx="200" cy="74" r="2.5"/>
                 <g id="hits"></g>
             </svg>
 
@@ -467,17 +462,58 @@
         <h2>About</h2>
         <p class="about">
             Romans split the daylight, from sunrise to sunset, into twelve equal
-            <a href="https://en.wikipedia.org/wiki/Roman_timekeeping">horae</a>, and the night into twelve more,
-            grouped into four watches (<i>vigiliae</i>). So an hour stretched in summer and shrank in winter.
-            By day this page draws a spherical sundial: the lower quarter of a hollow stone globe, open toward the equator,
-            laid out for your latitude. A bronze gnomon points out from the centre of its upper edge,
-            and its shadow marks the hour. The three curves are the winter solstice (<i>bruma</i>), the
-            equinox (<i>aequinoctium</i>) and the summer solstice (<i>solstitium</i>); the dashed line is today's path.
-            By night, when a sundial is useless, it switches to the water clock of Ctesibius (Vitruvius IX.8):
-            water drips at a steady rate into a cylinder, and a float lifts a figure whose wand points to the hour
-            on a drum. Because nights lengthen and shorten through the year, the hour lines wind around the drum,
-            which is turned so today's date faces the pointer.
+            <a href="https://penelope.uchicago.edu/Thayer/E/Roman/Texts/secondary/SMIGRA*/Hora.html">horae</a>,
+            and the night into twelve more, grouped into four watches (<i>vigiliae</i>). So an hour stretched in
+            summer and shrank in winter.
         </p>
+        <p class="about">
+            By day this page draws a <i>hemicyclium</i>, the hollow cut into a squared stone block that Vitruvius
+            credits to Berosus the Chaldean, laid out for your latitude. The gnomon's tip sits at the centre of the
+            sphere the hollow is cut from, so its shadow falls opposite the sun: it starts high on the west side at
+            sunrise, sinks to the bottom at noon and climbs to the east side by sunset. Eleven hour lines cross three
+            curves, as on surviving dials: the winter solstice (<i>bruma</i>), the equinox (<i>aequinoctium</i>) and
+            the summer solstice (<i>solstitium</i>). The dashed line is today's path.
+        </p>
+        <p class="about">
+            By night, when a sundial is useless, the page switches to the water clock of Ctesibius. Water drips at a
+            steady rate through a hole bored in gold or a gem into a cylinder, and a float lifts a figure whose wand
+            points to the hour on a column. Nights lengthen and shorten through the year, so Vitruvius marks
+            "the lines of the months" on the column and has it turn, giving the helical hour lines on the drum.
+        </p>
+
+        <h2>Sources</h2>
+        <ul class="sources">
+            <li>
+                <a href="https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Vitruvius/9*.html">Vitruvius, <i>De Architectura</i>, Book IX</a>
+                (Gwilt translation, LacusCurtius). Chapter 8 covers Berosus' hemicyclium and Ctesibius' water clock: the gold or gem
+                orifice, the float, the figure with its wand and the turning column. Also in the
+                <a href="http://www.perseus.tufts.edu/hopper/text?doc=Perseus:text:1999.02.0073:book=9:chapter=8">Morgan translation</a> (Perseus).
+            </li>
+            <li>
+                <a href="https://penelope.uchicago.edu/Thayer/E/Roman/Texts/secondary/SMIGRA*/Horologium.html">"Horologium"</a>
+                in Smith's <i>Dictionary of Greek and Roman Antiquities</i> (1875). Describes a hemicyclium found at Tusculum,
+                with eleven hour lines crossing three seasonal curves, and Ctesibius' clock.
+            </li>
+            <li>
+                <a href="https://penelope.uchicago.edu/Thayer/E/Roman/Texts/secondary/SMIGRA*/Hora.html">"Hora"</a>
+                in the same dictionary, on the twelve hours of the day and night.
+            </li>
+            <li>
+                <a href="http://www.perseus.tufts.edu/hopper/text?doc=Perseus:text:1999.02.0137:book=7:chapter=60">Pliny the Elder, <i>Natural History</i> VII.60</a>
+                (Perseus). Rome's first sundials and water clocks, including the dial brought from Catania that told the wrong time for 99 years.
+            </li>
+            <li>
+                <a href="https://archive.org/details/greekromansundia0000gibb_n3g4">Sharon L. Gibbs, <i>Greek and Roman Sundials</i></a>
+                (Yale, 1976). The standard catalogue of surviving dials and their geometry.
+            </li>
+            <li>
+                <a href="https://en.wikipedia.org/wiki/Roman_timekeeping">Roman timekeeping</a> (Wikipedia). An overview, including the night watches.
+            </li>
+            <li>
+                Sunrise and sunset are calculated with the formulas behind <a href="https://github.com/mourner/suncalc">SunCalc</a>,
+                after the <a href="https://gml.noaa.gov/grad/solcalc/">NOAA Solar Calculator</a>.
+            </li>
+        </ul>
 
         <footer>romanti.me</footer>
     </div>
@@ -569,7 +605,7 @@
         // of the tip lands diametrically opposite the sun. Everything works in a "dial frame": latitude is
         // taken as |lat| and, south of the equator, declination and east-west are mirrored so the dial faces north.
         const svgNS = "http://www.w3.org/2000/svg";
-        const CX = 200, CY = 30, R = 150, SOLSTICE = 23.44 * rad, REFRACTION = -0.833 * rad;
+        const CX = 200, CY = 52, R = 170, SOLSTICE = 23.44 * rad, REFRACTION = -0.833 * rad;
         const el = (tag, attrs, parent) => {
             const e = document.createElementNS(svgNS, tag);
             for (const k in attrs) e.setAttribute(k, attrs[k]);
@@ -873,7 +909,7 @@
                 $('latin').textContent = `Hora ${ORDINALS[idx]} Noctis`;
                 $('phrase').textContent = `${when} the ${ENGLISH[idx]} hour of night · Vigilia ${VIGILIAE[v]}`;
             }
-            $('dialTitle').textContent = `Spherical sundial showing ${$('latin').textContent}`;
+            $('dialTitle').textContent = `Hemicyclium sundial showing ${$('latin').textContent}`;
 
             const nextAt = new Date(per.start.getTime() + (idx + 1) * hourLen);
             $('progLeft').innerHTML = `<b>${Math.round(within * 100)}%</b> through hour ${NUMERALS[idx]}`;
