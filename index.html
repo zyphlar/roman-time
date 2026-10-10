@@ -149,8 +149,21 @@
         .band.done { fill: var(--band-done); }
         .band.now { fill: var(--band); }
         .hour-line { stroke: var(--dial-line); stroke-width: 1; fill: none; }
-        .day-curve { stroke: var(--dial-line); stroke-width: .8; fill: none; opacity: .75; }
-        .today { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 3 3; fill: none; opacity: .8; }
+        .day-curve { stroke: var(--dial-line); stroke-width: 1.6; fill: none; transition: stroke .2s, stroke-width .2s; }
+        .today { stroke: var(--accent); stroke-width: 1.2; stroke-dasharray: 4 3; fill: none; opacity: .85; transition: stroke-width .2s; }
+        .day-curve.active { stroke: var(--accent); stroke-width: 3; }
+        .today.active { stroke-width: 3; opacity: 1; }
+        .hit { stroke: transparent; stroke-width: 16; fill: none; pointer-events: stroke; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .hit:focus { outline: none; }
+        .horizon-line { stroke: var(--dial-line); stroke-width: 1; opacity: .6; }
+        .rod-shadow { stroke: var(--shadow-hand); stroke-width: 3.5; stroke-linecap: round; fill: none; filter: url(#soft); }
+        .curve-info { min-height: 2.6em; margin: 2px 8px 0; text-align: center; font-size: 13px; line-height: 1.35; color: var(--muted); }
+        .curve-info b { color: var(--text); font-weight: 600; }
+        .drum-shade { pointer-events: none; }
+        .month-line { stroke: var(--dial-line); stroke-width: .6; opacity: .5; }
+        .month-label { font-family: Cinzel, serif; font-size: 7px; fill: var(--muted); text-anchor: middle; dominant-baseline: central; }
+        .drop { fill: var(--water); }
+        .ripple { fill: none; stroke: var(--water); stroke-width: 1; }
         .numeral { font-family: Cinzel, serif; font-size: 12px; font-weight: 500; fill: var(--muted); text-anchor: middle; dominant-baseline: central; }
         .numeral.now { fill: var(--accent); font-weight: 700; }
         .shadow { fill: var(--shadow-hand); filter: url(#soft); }
@@ -160,9 +173,7 @@
         .bronze-line { stroke: var(--bronze); fill: none; }
         .water { fill: var(--water); opacity: .7; }
         .vessel { fill: var(--bg); opacity: .55; }
-        .stream { stroke: var(--water); stroke-width: 2; stroke-dasharray: 4 4; animation: flow .5s linear infinite; }
-        @keyframes flow { to { stroke-dashoffset: -8; } }
-        @media (prefers-reduced-motion: reduce) { .stream { animation: none; } }
+        .stream { stroke: var(--water); stroke-width: 2; stroke-dasharray: 4 4; }
         .col-line { stroke: var(--dial-line); stroke-width: 1; }
         .col-line.vigil { stroke-width: 2; }
         .star { fill: var(--star); }
@@ -340,32 +351,59 @@
         </header>
 
         <div class="dial-wrap">
-            <svg id="sundial" viewBox="0 0 400 268" role="img" aria-labelledby="dialTitle">
-                <title id="dialTitle">Hemicyclium sundial</title>
+            <svg id="sundial" viewBox="0 0 400 372" role="img" aria-labelledby="dialTitle">
+                <title id="dialTitle">Spherical sundial</title>
                 <defs>
                     <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
                         <feGaussianBlur stdDeviation="1.2"/>
                     </filter>
-                    <radialGradient id="bowlGrad" cx="200" cy="200" r="230" gradientUnits="userSpaceOnUse">
-                        <stop offset="0" class="g-deep"/>
-                        <stop offset="1" class="g-rim"/>
+                    <linearGradient id="bowlGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" class="g-rim"/>
+                        <stop offset=".45" class="g-rim" stop-opacity=".9"/>
+                        <stop offset="1" class="g-deep"/>
+                    </linearGradient>
+                    <radialGradient id="rimShade" cx=".5" cy=".5" r=".5">
+                        <stop offset=".7" stop-color="#000" stop-opacity="0"/>
+                        <stop offset="1" stop-color="#000" stop-opacity=".22"/>
+                    </radialGradient>
+                    <radialGradient id="globeShade" cx=".38" cy=".3" r=".75">
+                        <stop offset="0" stop-color="#fff" stop-opacity=".18"/>
+                        <stop offset="1" stop-color="#000" stop-opacity=".18"/>
                     </radialGradient>
                 </defs>
-                <path class="stone-top" d="M 14 52 L 40 22 H 360 L 386 52 Z"/>
-                <rect class="stone" x="14" y="52" width="372" height="196"/>
-                <rect class="stone-dark" x="6" y="246" width="388" height="16" rx="2"/>
-                <path class="bowl" fill="url(#bowlGrad)" d="M 30 52 A 170 170 0 0 0 370 52 Z"/>
+                <!-- pedestal -->
+                <path class="stone-dark" d="M 112 362 L 120 348 H 280 L 288 362 Z"/>
+                <path class="stone" d="M 136 348 L 150 330 H 250 L 264 348 Z"/>
+                <rect class="stone-dark" x="168" y="314" width="64" height="18" rx="4"/>
+                <!-- hollow globe, cut open on its equator-facing side -->
+                <circle class="stone-top" cx="200" cy="166" r="157"/>
+                <circle fill="url(#globeShade)" cx="200" cy="166" r="157"/>
+                <circle class="bowl" fill="url(#bowlGrad)" cx="200" cy="166" r="140"/>
+                <circle fill="url(#rimShade)" cx="200" cy="166" r="140"/>
+                <line class="horizon-line" x1="60" y1="166" x2="340" y2="166"/>
                 <g id="bands"></g>
                 <g id="dialLines"></g>
-                <path id="todayCurve" class="today"><title>Today's path of the shadow</title></path>
+                <path id="todayCurve" class="today"/>
                 <g id="numerals"></g>
-                <path id="shadow" class="shadow"/>
-                <circle id="tip" class="tip" r="3.5" cx="200" cy="52"/>
-                <path class="bronze" d="M 197 30 L 203 30 L 201.5 52 L 198.5 52 Z"/>
-                <circle class="bronze-dark" cx="200" cy="52" r="2.5"/>
+                <path id="shadow" class="rod-shadow"/>
+                <circle id="tip" class="tip" r="3.5" cx="200" cy="166"/>
+                <!-- gnomon hangs from the top of the opening; its tip is the centre of the sphere -->
+                <path class="bronze-dark" d="M 192 24 H 208 L 204 30 H 196 Z"/>
+                <path class="bronze" d="M 198 28 H 202 L 201 166 H 199 Z"/>
+                <circle class="bronze-dark" cx="200" cy="166" r="3"/>
+                <g id="hits"></g>
             </svg>
 
             <svg id="clepsydra" viewBox="0 0 400 400" role="img" aria-label="Water clock of Ctesibius" hidden>
+                <defs>
+                    <linearGradient id="drumShade" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0" stop-color="#000" stop-opacity=".45"/>
+                        <stop offset=".35" stop-color="#000" stop-opacity="0"/>
+                        <stop offset=".5" stop-color="#fff" stop-opacity=".06"/>
+                        <stop offset=".65" stop-color="#000" stop-opacity="0"/>
+                        <stop offset="1" stop-color="#000" stop-opacity=".45"/>
+                    </linearGradient>
+                </defs>
                 <g id="stars"></g>
                 <!-- supply pipe and constant-head tank -->
                 <path class="bronze-line" stroke-width="5" d="M 64 0 V 104"/>
@@ -377,30 +415,32 @@
                 <line class="stream" x1="8" y1="162" x2="8" y2="250"/>
                 <!-- orifice and feed to the cylinder -->
                 <path class="bronze-line" stroke-width="4" d="M 92 176 V 192 H 126 V 204"/>
-                <line id="drip" class="stream" x1="126" y1="206" x2="126" y2="380"/>
                 <!-- receiving cylinder -->
                 <rect class="vessel" x="118" y="230" width="84" height="160" rx="3"/>
                 <rect id="water" class="water" x="118" y="380" width="84" height="10"/>
+                <g id="drops"></g>
                 <path class="bronze-line" stroke-width="4" d="M 118 230 V 392 H 202 V 230"/>
                 <path class="bronze-line" stroke-width="3" d="M 112 230 H 120 M 132 230 H 152 M 168 230 H 208"/>
-                <!-- column of hours -->
+                <!-- rotating drum of hours, turned so today's date faces the pointer -->
                 <rect class="stone-dark" x="252" y="32" width="64" height="12" rx="2"/>
-                <rect class="stone" x="260" y="44" width="48" height="164"/>
-                <rect class="stone-dark" x="252" y="206" width="64" height="12" rx="2"/>
-                <rect class="stone" x="246" y="218" width="76" height="164"/>
-                <rect class="stone-dark" x="240" y="380" width="88" height="12" rx="2"/>
+                <rect class="stone" x="260" y="44" width="48" height="178"/>
                 <g id="column"></g>
+                <rect class="drum-shade" fill="url(#drumShade)" x="260" y="44" width="48" height="178"/>
+                <rect class="stone-dark" x="252" y="220" width="64" height="12" rx="2"/>
+                <rect class="stone" x="246" y="232" width="76" height="150"/>
+                <rect class="stone-dark" x="240" y="380" width="88" height="12" rx="2"/>
                 <!-- float, rod and figure ride the water -->
                 <g id="float">
                     <rect class="bronze-dark" x="134" y="370" width="62" height="10" rx="3"/>
                     <rect class="bronze" x="158.5" y="214" width="3" height="156"/>
                     <circle class="bronze" cx="160" cy="184" r="6"/>
                     <path class="bronze" d="M 154 214 L 156 192 H 164 L 166 214 Z"/>
-                    <path class="bronze-line" stroke-width="2" d="M 162 198 L 258 200"/>
-                    <circle class="tip" cx="258" cy="200" r="3"/>
+                    <path class="bronze-line" stroke-width="2" d="M 162 198 L 262 200"/>
+                    <circle class="tip" cx="262" cy="200" r="3"/>
                 </g>
             </svg>
         </div>
+        <p class="curve-info" id="curveInfo"></p>
 
         <div class="readout" aria-live="polite">
             <div class="numeral-big" id="bigNumeral">–</div>
@@ -437,11 +477,14 @@
             Romans split the daylight, from sunrise to sunset, into twelve equal
             <a href="https://en.wikipedia.org/wiki/Roman_timekeeping">horae</a>, and the night into twelve more,
             grouped into four watches (<i>vigiliae</i>). So an hour stretched in summer and shrank in winter.
-            By day this page draws a <i>hemicyclium</i>, the hollowed-stone sundial Vitruvius credits to Berosus,
-            laid out for your latitude: the curves mark the winter solstice, equinox and summer solstice,
-            and the dashed line is today's path of the shadow. By night, when a sundial is useless, it switches to
-            the water clock of Ctesibius: water drips at a steady rate into a cylinder, and a float lifts a figure
-            whose wand points to the hour.
+            By day this page draws a spherical sundial, a hollow stone globe cut open toward the equator,
+            laid out for your latitude. A bronze gnomon hangs from the top of the opening to the centre of the sphere,
+            and its tip's shadow marks the hour. The three curves are the winter solstice (<i>bruma</i>), the
+            equinox (<i>aequinoctium</i>) and the summer solstice (<i>solstitium</i>); the dashed line is today's path.
+            By night, when a sundial is useless, it switches to the water clock of Ctesibius (Vitruvius IX.8):
+            water drips at a steady rate into a cylinder, and a float lifts a figure whose wand points to the hour
+            on a drum. Because nights lengthen and shorten through the year, the hour lines wind around the drum,
+            which is turned so today's date faces the pointer.
         </p>
 
         <footer>romanti.me</footer>
@@ -529,27 +572,90 @@
             return Math.asin(Math.sin(obliquity) * Math.sin(M + C + rad * 102.9372 + Math.PI));
         }
 
-        // ---- hemicyclium ----
-        // Front view of an equator-facing spherical dial. The gnomon tip sits at the centre of the
-        // sphere, so its shadow lands diametrically opposite the sun: x = -east, y (down) = sin(altitude).
+        // ---- spherical sundial ----
+        // Front view of an equator-facing hollow sphere. The gnomon tip sits at the centre, so the shadow
+        // of the tip lands diametrically opposite the sun. Everything works in a "dial frame": latitude is
+        // taken as |lat| and, south of the equator, declination and east-west are mirrored so the dial faces north.
         const svgNS = "http://www.w3.org/2000/svg";
-        const CX = 200, CY = 52, R = 170, SOLSTICE = 23.44 * rad;
+        const CX = 200, CY = 166, R = 140, SOLSTICE = 23.44 * rad, REFRACTION = -0.833 * rad;
         const el = (tag, attrs, parent) => {
             const e = document.createElementNS(svgNS, tag);
             for (const k in attrs) e.setAttribute(k, attrs[k]);
             parent.appendChild(e);
             return e;
         };
-        function dialPoint(lat, dec, f, halfDay) {
-            const south = lat < 0, phi = Math.abs(lat) * rad, d = south ? -dec : dec;
-            const H0 = halfDay ?? Math.acos(Math.max(-1, Math.min(1, -Math.tan(phi) * Math.tan(d))));
+        const clamp1 = v => Math.max(-1, Math.min(1, v));
+        const halfDayAngle = (phi, d) => Math.acos(clamp1(-Math.tan(phi) * Math.tan(d)));
+        // Sun's unit vector (east, north, up) for temporal-hour fraction f of the day.
+        function sunVec(lat, dec, f, halfDay) {
+            const phi = Math.abs(lat) * rad, d = lat < 0 ? -dec : dec;
+            const H0 = halfDay ?? halfDayAngle(phi, d);
             const H = H0 * (2 * f - 1);
-            const x = Math.cos(d) * Math.sin(H);
-            const y = Math.max(0, Math.sin(phi) * Math.sin(d) + Math.cos(phi) * Math.cos(d) * Math.cos(H));
-            return [CX + (south ? -x : x) * R, CY + y * R];
+            return {
+                e: -Math.cos(d) * Math.sin(H) * (lat < 0 ? -1 : 1),
+                n: Math.cos(phi) * Math.sin(d) - Math.sin(phi) * Math.cos(d) * Math.cos(H),
+                u: Math.sin(phi) * Math.sin(d) + Math.cos(phi) * Math.cos(d) * Math.cos(H)
+            };
+        }
+        const toScreen = (east, up) => [CX + east * R, CY - up * R];
+        function dialPoint(lat, dec, f, halfDay) {
+            const s = sunVec(lat, dec, f, halfDay);
+            return toScreen(-s.e, Math.min(0, -s.u));
+        }
+        // Shadow of the hanging rod (from the top of the opening down to the centre) on the inner sphere.
+        function rodShadow(s) {
+            return range(0, 1, 24).map(h => {
+                const b = h * s.u, t = b + Math.sqrt(Math.max(0, b * b - h * h + 1));
+                return toScreen(-t * s.e, h - t * s.u);
+            });
         }
         const toPath = pts => 'M' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('L');
         const range = (a, b, n) => Array.from({ length: n + 1 }, (_, i) => a + (b - a) * i / n);
+        const romanHourMin = (lat, dec) => {
+            const phi = Math.abs(lat) * rad, d = lat < 0 ? -dec : dec;
+            const cosH = (Math.sin(REFRACTION) - Math.sin(phi) * Math.sin(d)) / (Math.cos(phi) * Math.cos(d));
+            return Math.round(Math.acos(clamp1(cosH)) / Math.PI * 1440 / 12);
+        };
+
+        // Curves the reader can point at: the three seasonal day curves plus today's.
+        const curveEls = {};
+        let activeCurve = null, pinnedCurve = null;
+        function curveText(key) {
+            const lat = place.lat, south = lat < 0;
+            const bits = {
+                bruma: ['Bruma', 'winter solstice', south ? '21 Jun' : '21 Dec', 'shortest day', -SOLSTICE],
+                aequinoctium: ['Aequinoctium', 'equinox', '20 Mar & 22 Sep', 'day equals night', 0],
+                solstitium: ['Solstitium', 'summer solstice', south ? '21 Dec' : '21 Jun', 'longest day', SOLSTICE],
+            }[key];
+            if (key === 'today') {
+                const dec = solarDec(new Date(Date.now() + offsetMin * 6e4));
+                return `<b>Today's path</b> of the shadow · ${romanHourMin(lat, dec)}-minute hours`;
+            }
+            const dec = south ? -bits[4] : bits[4];
+            return `<b>${bits[0]}</b> · ${bits[1]} (~${bits[2]}) · ${bits[3]}, ${romanHourMin(lat, dec)}-minute hours`;
+        }
+        function setActiveCurve(key) {
+            activeCurve = key;
+            for (const k in curveEls) curveEls[k].classList.toggle('active', k === key);
+            $('curveInfo').innerHTML = key ? curveText(key) : 'Point at or tap a curve to identify it';
+        }
+        function addHit(key, d) {
+            let hit = $('hit-' + key);
+            if (!hit) {
+                hit = el('path', { id: 'hit-' + key, class: 'hit', tabindex: 0, role: 'button', 'aria-label': key }, $('hits'));
+                hit.addEventListener('pointerenter', () => setActiveCurve(key));
+                hit.addEventListener('pointerleave', () => setActiveCurve(pinnedCurve));
+                hit.addEventListener('focus', () => setActiveCurve(key));
+                hit.addEventListener('blur', () => setActiveCurve(pinnedCurve));
+                hit.addEventListener('click', e => {
+                    e.stopPropagation();
+                    pinnedCurve = pinnedCurve === key ? null : key;
+                    setActiveCurve(pinnedCurve ?? key);
+                });
+            }
+            hit.setAttribute('d', d);
+        }
+        document.addEventListener('click', () => { if (pinnedCurve) { pinnedCurve = null; setActiveCurve(null); } });
 
         const bandEls = [], numEls = [];
         let dialLat = null;
@@ -570,35 +676,66 @@
                 // numerals sit just outside the winter-solstice curve, nearest the rim
                 const [px, py] = dialPoint(lat, winter, (k + .5) / 12);
                 const vx = px - CX, vy = py - CY, len = Math.hypot(vx, vy) || 1;
-                const t = el('text', { class: 'numeral', x: px + vx / len * 11, y: py + vy / len * 11 }, nums);
+                const t = el('text', { class: 'numeral', x: px + vx / len * 10, y: py + vy / len * 10 }, nums);
                 t.textContent = NUMERALS[k];
                 numEls.push(t);
             }
             for (let k = 0; k <= 12; k++) el('path', { class: 'hour-line', d: toPath(hourLine(k / 12)) }, lines);
-            const curves = [[winter, 'Bruma (winter solstice)'], [0, 'Aequinoctium (equinox)'], [-winter, 'Solstitium (summer solstice)']];
-            for (const [d, name] of curves) {
-                const c = el('path', { class: 'day-curve', d: toPath(dayCurve(d, 0, 1, 48)) }, lines);
-                el('title', {}, c).textContent = name;
+            for (const [key, d] of [['bruma', winter], ['aequinoctium', 0], ['solstitium', -winter]]) {
+                const path = toPath(dayCurve(d, 0, 1, 60));
+                curveEls[key] = el('path', { class: 'day-curve', d: path }, lines);
+                addHit(key, path);
             }
+            curveEls.today = $('todayCurve');
+            setActiveCurve(pinnedCurve);
         }
 
         // ---- clepsydra ----
-        // Water rises at a steady rate through the night; the float carries the figure up the column.
-        const TRAVEL = 150, POINTER0 = 200;
-        const colMarks = [], colNums = [], colBands = [];
-        (function buildClepsydra() {
+        // Water rises at a steady rate, so the hour marks sit at heights proportional to elapsed time.
+        // Nights change length through the year, so each hour line winds around the drum; the drum is
+        // turned daily so today's date faces the pointer. The inflow is set so the longest night fills it.
+        const TRAVEL = 150, POINTER0 = 200, DRUM_X = 284, DRUM_R = 24, DRUM_SPAN = 75 * rad;
+        const MONTHS = ['IAN', 'FEB', 'MAR', 'APR', 'MAI', 'IVN', 'IVL', 'AVG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const nightFrac = (lat, date) => 1 - romanHourMin(lat, solarDec(date)) * 12 / 1440;
+        const colNums = [], colBands = [];
+        let drumKey = null, maxNight = 1;
+        function buildDrum(lat, today) {
+            const key = lat + '|' + today.toDateString();
+            if (drumKey === key) return;
+            drumKey = key;
             const col = $('column');
+            col.replaceChildren();
+            colNums.length = colBands.length = 0;
+            const yearStart = new Date(today.getFullYear(), 0, 1);
+            maxNight = Math.max(...range(0, 365, 365).map(d => nightFrac(lat, new Date(yearStart.getTime() + d * dayMs))));
+            const thetas = range(-DRUM_SPAN, DRUM_SPAN, 30);
+            const dateAt = th => new Date(today.getTime() + th / (2 * Math.PI) * 365.2422 * dayMs);
+            const nights = thetas.map(th => nightFrac(lat, dateAt(th)));
+            const xAt = th => DRUM_X + DRUM_R * Math.sin(th);
+            const yAt = (k, night) => POINTER0 - k / 12 * night / maxNight * TRAVEL;
+            const line = k => thetas.map((th, i) => [xAt(th), yAt(k, nights[i])]);
             for (let k = 0; k < 12; k++) {
-                const y1 = POINTER0 - k * TRAVEL / 12, y0 = y1 - TRAVEL / 12;
-                colBands.push(el('rect', { class: 'band', x: 260, y: y0, width: 48, height: TRAVEL / 12 }, col));
-                const t = el('text', { class: 'numeral', x: 284, y: (y0 + y1) / 2 }, col);
+                colBands.push(el('path', { class: 'band', d: toPath([...line(k), ...line(k + 1).reverse()]) + 'Z' }, col));
+            }
+            for (let k = 0; k <= 12; k++) el('path', { class: 'col-line' + (k % 3 === 0 ? ' vigil' : ''), d: toPath(line(k)), fill: 'none' }, col);
+            // month boundaries (Kalends) as they wrap round the drum
+            for (let m = -3; m <= 4; m++) {
+                const kal = new Date(today.getFullYear(), today.getMonth() + m, 1);
+                const th = (kal - today) / dayMs / 365.2422 * 2 * Math.PI;
+                if (Math.abs(th) > DRUM_SPAN * .92) continue;
+                const top = yAt(12, nightFrac(lat, kal));
+                el('line', { class: 'month-line', x1: xAt(th), x2: xAt(th), y1: POINTER0, y2: top }, col);
+            }
+            el('text', { class: 'month-label', x: DRUM_X, y: POINTER0 + 10 }, col).textContent = MONTHS[today.getMonth()];
+            const front = nightFrac(lat, today);
+            for (let k = 0; k < 12; k++) {
+                const y1 = yAt(k, front), y0 = yAt(k + 1, front);
+                const t = el('text', { class: 'numeral', x: DRUM_X, y: (y0 + y1) / 2, 'font-size': Math.max(6, Math.min(11, (y1 - y0) * .85)) }, col);
                 t.textContent = NUMERALS[k];
                 colNums.push(t);
             }
-            for (let k = 0; k <= 12; k++) {
-                const y = POINTER0 - k * TRAVEL / 12;
-                el('line', { class: 'col-line' + (k % 3 === 0 ? ' vigil' : ''), x1: 260, x2: 308, y1: y, y2: y }, col);
-            }
+        }
+        (function buildStars() {
             const stars = $('stars');
             let seed = 7;
             const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -607,17 +744,56 @@
             }
         })();
 
+        // Drips from the orifice, ripples where they land, and flowing supply/overflow streams.
+        let waterY = 380;
+        const NOZZLE = [126, 206];
+        const drops = [], ripples = [];
+        let lastSpawn = 0, lastFrame = 0;
+        function animateWater(t) {
+            requestAnimationFrame(animateWater);
+            if ($('clepsydra').hasAttribute('hidden') || document.hidden) { lastFrame = t; return; }
+            const dt = Math.max(0, Math.min(50, t - (lastFrame || t))) / 1000;
+            lastFrame = t;
+            if (t - lastSpawn > 420) {
+                lastSpawn = t;
+                drops.push({ y: NOZZLE[1], v: 0, node: el('circle', { class: 'drop', cx: NOZZLE[0], cy: NOZZLE[1], r: 2.2 }, $('drops')) });
+            }
+            for (let i = drops.length - 1; i >= 0; i--) {
+                const d = drops[i];
+                d.v += 600 * dt;
+                d.y += d.v * dt;
+                if (d.y >= waterY) {
+                    d.node.remove();
+                    drops.splice(i, 1);
+                    ripples.push({ age: 0, node: el('ellipse', { class: 'ripple', cx: NOZZLE[0], cy: waterY, rx: 1, ry: .5 }, $('drops')) });
+                } else d.node.setAttribute('cy', d.y);
+            }
+            for (let i = ripples.length - 1; i >= 0; i--) {
+                const r = ripples[i];
+                r.age += dt;
+                if (r.age > .5) { r.node.remove(); ripples.splice(i, 1); continue; }
+                r.node.setAttribute('rx', 1 + r.age * 22);
+                r.node.setAttribute('ry', .5 + r.age * 4);
+                r.node.setAttribute('cy', waterY);
+                r.node.setAttribute('opacity', 1 - r.age * 2);
+            }
+            document.querySelectorAll('#clepsydra .stream').forEach(s => s.setAttribute('stroke-dashoffset', (-t / 40) % 8));
+        }
+        requestAnimationFrame(animateWater);
+
         function drawDay(now, per, frac, idx) {
             $('sundial').toggleAttribute('hidden', false);
             $('clepsydra').toggleAttribute('hidden', true);
             buildDial(place.lat);
             const dec = solarDec(now);
-            $('todayCurve').setAttribute('d', toPath(range(0, 1, 48).map(f => dialPoint(place.lat, dec, f))));
-            const halfDay = Math.PI * (per.end - per.start) / dayMs;
-            const [tx, ty] = dialPoint(place.lat, dec, frac, halfDay);
-            const dx = tx - CX, dy = ty - CY, len = Math.hypot(dx, dy) || 1;
-            const nx = -dy / len, ny = dx / len;
-            $('shadow').setAttribute('d', `M${CX + nx * 2.5},${CY + ny * 2.5} L${tx + nx * .8},${ty + ny * .8} L${tx - nx * .8},${ty - ny * .8} L${CX - nx * 2.5},${CY - ny * 2.5}Z`);
+            const today = toPath(range(0, 1, 60).map(f => dialPoint(place.lat, dec, f)));
+            $('todayCurve').setAttribute('d', today);
+            addHit('today', today);
+            if (activeCurve === 'today') $('curveInfo').innerHTML = curveText('today');
+            const sun = sunVec(place.lat, dec, frac, Math.PI * (per.end - per.start) / dayMs);
+            sun.u = Math.max(0, sun.u);
+            $('shadow').setAttribute('d', toPath(rodShadow(sun)));
+            const [tx, ty] = toScreen(-sun.e, -sun.u);
             $('shadow').style.display = $('tip').style.display = '';
             $('tip').setAttribute('cx', tx);
             $('tip').setAttribute('cy', ty);
@@ -625,14 +801,16 @@
             numEls.forEach((n, i) => n.setAttribute('class', 'numeral' + (i === idx ? ' now' : '')));
         }
 
-        function drawNight(frac, idx) {
+        function drawNight(now, frac, idx) {
             $('sundial').toggleAttribute('hidden', true);
             $('clepsydra').toggleAttribute('hidden', false);
-            const rise = frac * TRAVEL;
+            $('curveInfo').innerHTML = 'The drum turns once a year; today faces the pointer';
+            buildDrum(place.lat, now);
+            const rise = Math.min(TRAVEL, frac * nightFrac(place.lat, now) / maxNight * TRAVEL);
+            waterY = 380 - rise;
             $('float').setAttribute('transform', `translate(0 ${-rise})`);
-            $('water').setAttribute('y', 380 - rise);
+            $('water').setAttribute('y', waterY);
             $('water').setAttribute('height', 10 + rise);
-            $('drip').setAttribute('y2', 380 - rise);
             colBands.forEach((b, i) => b.setAttribute('class', 'band' + (i < idx ? ' done' : i === idx ? ' now' : '')));
             colNums.forEach((n, i) => n.setAttribute('class', 'numeral' + (i === idx ? ' now' : '')));
         }
@@ -696,7 +874,7 @@
 
             document.body.classList.toggle('night', !per.isDay);
             if (per.isDay) drawDay(now, per, frac, idx);
-            else drawNight(frac, idx);
+            else drawNight(now, frac, idx);
 
             $('bigNumeral').textContent = NUMERALS[idx];
             const when = within < 1 / 3 ? 'Early in' : within < 2 / 3 ? 'Midway through' : 'Late in';
@@ -708,7 +886,7 @@
                 $('latin').textContent = `Hora ${ORDINALS[idx]} Noctis`;
                 $('phrase').textContent = `${when} the ${ENGLISH[idx]} hour of night · Vigilia ${VIGILIAE[v]}`;
             }
-            $('dialTitle').textContent = `Hemicyclium sundial showing ${$('latin').textContent}`;
+            $('dialTitle').textContent = `Spherical sundial showing ${$('latin').textContent}`;
 
             const nextAt = new Date(per.start.getTime() + (idx + 1) * hourLen);
             $('progLeft').innerHTML = `<b>${Math.round(within * 100)}%</b> through hour ${NUMERALS[idx]}`;
